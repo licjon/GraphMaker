@@ -39,7 +39,6 @@ int main(void)
     bool isNodeSelected = false;
     bool isNodeLocked = false;
     int selectedIndex;
-    int selectedIndexForLine;
     Color nodeColors[MAXNODES] = {DARKBLUE, RED,   DARKGREEN,  ORANGE,  PINK,
                                   PURPLE,   BLACK, BROWN,      GOLD,    MAROON,
                                   YELLOW,   GRAY,  GOLD,       LIME,    SKYBLUE,
@@ -50,7 +49,6 @@ int main(void)
     bool isLineEnded = false;
     int numOfLines = 0;
     struct node startNode;
-
 
     SetTargetFPS(60);     
     //---------------------------------------------------------------------------------------
@@ -127,7 +125,7 @@ int main(void)
         }
 
         //Create Node
-        if (isNodeDrawn && isSpaceFree) {
+        if (isNodeDrawn && isSpaceFree && structCount <= MAXNODES - 1) {
           nodes[nodeIndex].id = structCount;
           nodes[nodeIndex].color = nodeColors[colorIndex];
           nodes[nodeIndex].diameter = nodeDiameter;
@@ -195,7 +193,7 @@ int main(void)
                    BLACK);
         }
 
-        DrawText("Graph Maker", 10, 10, 20, DARKGRAY);
+        /* DrawText("Graph Maker", 10, 10, 20, DARKGRAY); */
 
         EndDrawing();
         //----------------------------------------------------------------------------------
