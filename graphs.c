@@ -41,7 +41,7 @@ int main(void)
     int selectedIndex;
     Color nodeColors[MAXNODES] = {DARKBLUE, RED,   DARKGREEN,  ORANGE,  PINK,
                                   PURPLE,   BLACK, BROWN,      GOLD,    MAROON,
-                                  YELLOW,   GRAY,  GOLD,       LIME,    SKYBLUE,
+                                  YELLOW,   GRAY,  MAGENTA,       LIME,    SKYBLUE,
                                   VIOLET,   BEIGE, DARKBROWN,  GREEN,   LIGHTGRAY};
     int colorIndex = 0;
 
@@ -76,11 +76,13 @@ int main(void)
             isLineEnded = true;
           }
         }
-bool isSpaceFree = true;
+
+        bool isSpaceFree = true;
         bool isMouseOverNode = false;
+
         for (int i = 0; i < MAXNODES; i++) {
           isMouseOverNode = CheckCollisionPointCircle(
-              mousePosition, nodes[i].position, nodeDiameter / 2.0);
+              mousePosition, nodes[i].position, nodeDiameter / 1.5);
 
           if (isMouseOverNode && !(isLineStarted || isLineEnded)) {
             isSpaceFree = false;
