@@ -127,17 +127,6 @@ int main(void)
           isNodeDrawn = false;
         }
 
-        //Move Node
-        if (isNodeSelected) {
-          nodes[selectedIndex].position = mousePosition;
-          DrawCircleV(nodes[selectedIndex].position,
-                      nodes[selectedIndex].diameter,
-                      nodes[selectedIndex].color);
-          DrawText(TextFormat("%d", selectedIndex + 1),
-                   nodes[selectedIndex].position.x - 20,
-                   nodes[selectedIndex].position.y - 15, 8, BLACK);
-          
-        }
 
         // LINES---------------------
         if (isNodeSelected) {
@@ -157,6 +146,18 @@ int main(void)
         
         ClearBackground(RAYWHITE);
         
+        //Move Node
+        if (isNodeSelected) {
+          nodes[selectedIndex].position = mousePosition;
+          DrawCircleV(nodes[selectedIndex].position,
+                      nodes[selectedIndex].diameter,
+                      nodes[selectedIndex].color);
+          DrawText(TextFormat("%d", selectedIndex + 1),
+                   nodes[selectedIndex].position.x - 20,
+                   nodes[selectedIndex].position.y - 15, 8, BLACK);
+          
+        }
+
         for (int i = 0; i < MAXNODES; i++) {
           for (int j = 0; j < MAXNODES; j++) {
             DrawCircleV(nodes[i].position, nodes[i].diameter,
