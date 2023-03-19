@@ -76,15 +76,7 @@ int main(void)
             isLineEnded = true;
           }
         }
-        //----------------------------------------------------------------------------------
-        
-        // Draw
-        //----------------------------------------------------------------------------------
-        BeginDrawing();
-        
-        ClearBackground(RAYWHITE);
-        
-        bool isSpaceFree = true;
+bool isSpaceFree = true;
         bool isMouseOverNode = false;
         for (int i = 0; i < MAXNODES; i++) {
           isMouseOverNode = CheckCollisionPointCircle(
@@ -114,11 +106,6 @@ int main(void)
                 selectedIndex = i;
                 isNodeLocked = true;
                 break;
-              } else {
-                DrawCircleV(nodes[i].position, nodes[i].diameter,
-                            nodes[i].color);
-                DrawText(TextFormat("%d", i + 1), nodes[i].position.x - 20,
-                         nodes[i].position.y - 15, 8, BLACK);
               }
             }
           }
@@ -160,7 +147,24 @@ int main(void)
               lines[k].endNode.position = nodes[selectedIndex].position;
           }
         }
+        //----------------------------------------------------------------------------------
+        
+        // Draw
+        //----------------------------------------------------------------------------------
+        BeginDrawing();
+        
+        ClearBackground(RAYWHITE);
+        
+        for (int i = 0; i < MAXNODES; i++) {
+          for (int j = 0; j < MAXNODES; j++) {
+            DrawCircleV(nodes[i].position, nodes[i].diameter,
+                        nodes[i].color);
+            DrawText(TextFormat("%d", i + 1), nodes[i].position.x - 20,
+                     nodes[i].position.y - 15, 8, BLACK);
+          }
+        }
 
+        //Draw line before it is connected to end node
         if (isLineStarted) {
           lines[lineIndex].startNode = nodes[selectedIndex];
           DrawLine(lines[lineIndex].startNode.position.x,
@@ -179,12 +183,12 @@ int main(void)
           numOfLines++;
         }
 
-        printf("line %d coordinates: %f, %f to %f, %f \n", lineIndex - 1,
-               lines[lineIndex - 1].startNode.position.x,
-               lines[lineIndex - 1].startNode.position.y,
-               lines[lineIndex - 1].endNode.position.x,
-               lines[lineIndex - 1].endNode.position.y);
-        printf("num of lines = %d\n", numOfLines);
+        /* printf("line %d coordinates: %f, %f to %f, %f \n", lineIndex - 1, */
+        /*        lines[lineIndex - 1].startNode.position.x, */
+        /*        lines[lineIndex - 1].startNode.position.y, */
+        /*        lines[lineIndex - 1].endNode.position.x, */
+        /*        lines[lineIndex - 1].endNode.position.y); */
+        /* printf("num of lines = %d\n", numOfLines); */
 
         // draw lines
         for (int k = 0; k < numOfLines; k++) {
