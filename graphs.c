@@ -161,6 +161,21 @@ int main(void)
           isNodeDrawn = false;
         }
 
+<<<<<<< HEAD
+=======
+        //Move Node
+        if (isNodeSelected) {
+          nodes[selectedIndex].position = mousePosition;
+          DrawCircleV(nodes[selectedIndex].position,
+                      nodes[selectedIndex].diameter,
+                      nodes[selectedIndex].color);
+          DrawText(TextFormat("%d", selectedIndex + 1),
+                   nodes[selectedIndex].position.x - 20,
+                   nodes[selectedIndex].position.y - 15, 8, BLACK);
+          
+        }
+
+>>>>>>> parent of a49c82f (Moved a bit of code)
         // LINES---------------------
 
         struct lines *ln;
@@ -181,6 +196,7 @@ int main(void)
         
         ClearBackground(RAYWHITE);
         
+<<<<<<< HEAD
         //Move Node
         if (isNodeSelected) {
           selectedNode.position = mousePosition;
@@ -199,6 +215,14 @@ int main(void)
                         n3->node.color);
             DrawText(TextFormat("%d", n3->node.id), n3->node.position.x - 20,
                      n3->node.position.y - 15, 8, BLACK);
+=======
+        for (int i = 0; i < MAXNODES; i++) {
+          for (int j = 0; j < MAXNODES; j++) {
+            DrawCircleV(nodes[i].position, nodes[i].diameter,
+                        nodes[i].color);
+            DrawText(TextFormat("%d", i + 1), nodes[i].position.x - 20,
+                     nodes[i].position.y - 15, 8, BLACK);
+>>>>>>> parent of a49c82f (Moved a bit of code)
           }
 
         //Draw line before it is connected to end node
