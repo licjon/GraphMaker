@@ -1,4 +1,4 @@
-OBJS = graphs.c
+OBJS = main.c my_graph.c
 
 CC = clang
 
@@ -10,3 +10,6 @@ OBJ_NAME = main
 
 all : $(OBJS)
 	$(CC) $(OBJS) $(COMPILER_FLAGS) $(LINKER_FLAGS) -o $(OBJ_NAME)
+
+clean:
+	rm $(OBJS) main
