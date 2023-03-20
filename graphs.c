@@ -1,11 +1,19 @@
 #include "raylib.h"
 #include <stdbool.h>
 #include <stdio.h>
-#include <sys/queue.h>
+#include <stdlib.h>
+#include <glib.h>///Getting around this in Makefile
+#include <assert.h>
 
 #define MAXNODES 20
 
+GList* list = NULL;
 //------------------------------------------------------------------------------------
+void logError (int line, char* message)
+{
+  printf("[ %d %s]\n", line, message);
+}
+#define LOG( message ) logError( __LINE__, message )
 
 int main(void)
 {
@@ -26,9 +34,15 @@ int main(void)
 
     struct nodes {
       Node node;
-      STAILQ_ENTRY(nodes) nodes;
+      LIST_ENTRY(nodes) nodes;
     };
       
+    LIST_HEAD(nodehead, nodes);
+    struct nodes *currentNode;
+    struct nodehead head;
+    LIST_INIT(&head);
+    currentNode = malloc(sizeof (struct nodes));
+
     typedef struct line {
       Node startNode;
       Node endNode;
@@ -36,8 +50,9 @@ int main(void)
 
     struct lines {
       Line line;
-      STAILQ_ENTRY(lines) lines;
+      LIST_ENTRY(lines) lines;
     };
+
 
     /* struct line lines[MAXNODES]; */
     /* int lineIndex = 0; */
@@ -46,6 +61,8 @@ int main(void)
     /* struct node nodes[MAXNODES]; */
     int structCount = 1;
     Node selectedNode;
+    Node newNode;
+    
     /* int nodeIndex = 0; */
     int nodeDiameter = 10;
     bool isNodeDrawn = false;
@@ -63,13 +80,8 @@ int main(void)
     int numOfLines = 0;
 
     //Node list
-    STAILQ_HEAD(nodehead, nodes) head;
-    STAILQ_INIT(&head);
-
     //Line list
-    STAILQ_HEAD(linehead, lines) lhead;
-    STAILQ_INIT(&lhead);
-    currentLine = STAILQ_FIRST(&lhead);
+
 
     SetTargetFPS(60);     
     //---------------------------------------------------------------------------------------
@@ -102,7 +114,9 @@ int main(void)
         bool isMouseOverNode = false;
 
         struct nodes *n, *n2, *nodeStruct;
-        for (n = STAILQ_FIRST(&head); n != NULL; STAILQ_NEXT(n, nodes)) {
+
+        //Different things to do when mouse is over a node
+        for (n = LIST_FIRST(&head); n != NULL; LIST_NEXT(n, nodes)) {
           isMouseOverNode = CheckCollisionPointCircle(
               mousePosition, n->node.position, nodeDiameter / 1.5);
 
@@ -111,7 +125,6 @@ int main(void)
             isNodeDrawn = false;
           }
           if (isMouseOverNode && isLineStarted && !isNodeLocked) {
-            selectedNode = n->node;
             nodeStruct = n;
             isNodeLocked = true;
           } else if (isMouseOverNode && isLineEnded && isNodeLocked) {
@@ -120,13 +133,13 @@ int main(void)
           }
 
 
-          for (n2 = STAILQ_FIRST(&head); n2 != NULL; STAILQ_NEXT(n2, nodes)) {
-            if (!CheckCollisionCircles(n2->node.position, nodeDiameter / 2.0,
+          for (n2 = LIST_FIRST(&head); n2 != NULL; LIST_NEXT(n2, nodes)) {
+            if (!CheckCollisionCircles(n->node.position, nodeDiameter / 2.0,
                                        n2->node.position, nodeDiameter / 2.0)) {
               if (isMouseOverNode && isNodeSelected && !isNodeLocked) {
                 // Lock node so when moving, selection is kept.
-                selectedNode = n2->node;
-                nodeStruct = n2;
+                selectedNode = n->node;
+                nodeStruct = n;
                 isNodeLocked = true;
                 break;
               }
@@ -136,12 +149,15 @@ int main(void)
 
         //Create Node
         if (isNodeDrawn && isSpaceFree) {
-          selectedNode.id = structCount;
-          selectedNode.color = nodeColors[colorIndex];
-          selectedNode.diameter = nodeDiameter;
-          selectedNode.position = mousePosition;
-          STAILQ_NEXT(nodeStruct, nodes);
+
+          newNode.id = structCount;
+          newNode.color = nodeColors[colorIndex];
+          newNode.diameter = nodeDiameter;
+          newNode.position = mousePosition;
+          currentNode->node = newNode;
+          LIST_INSERT_HEAD(&head, currentNode, nodes);
           colorIndex++;
+          structCount++;
           isNodeDrawn = false;
         }
 
