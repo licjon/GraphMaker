@@ -1,3 +1,4 @@
+/* List version of Graph Maker */
 #include "raylib.h"
 #include <stdbool.h>
 #include <stdio.h>
