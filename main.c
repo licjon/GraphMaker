@@ -191,11 +191,11 @@ int main(void)
             exit(EXIT_FAILURE);
           }
           /* ((struct line *)line_list->data)->endNode = selectedNode; */
-          DrawLine(((struct line *)line_list->data)->startNode.position.x,
-                   ((struct line *)line_list->data)->startNode.position.y,
-                   ((struct line *)line_list->data)->endNode.position.x,
-                   ((struct line *)line_list->data)->endNode.position.y,
-                   BLACK);
+          /* DrawLine(((struct line *)line_list->data)->startNode.position.x, */
+          /*          ((struct line *)line_list->data)->startNode.position.y, */
+          /*          ((struct line *)line_list->data)->endNode.position.x, */
+          /*          ((struct line *)line_list->data)->endNode.position.y, */
+          /*          BLACK); */
           isLineStarted = false;
           isLineEnded = false;
           isNodeLocked = false;
