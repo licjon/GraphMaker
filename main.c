@@ -14,26 +14,23 @@ int main(void)
     //--------------------------------------------------------------------------------------
     const int screenWidth = 800;
     const int screenHeight = 450;
+    SetTraceLogCallback(CustomLog);
     InitWindow(screenWidth, screenHeight, "Graph Maker");
 
     Vector2 mousePosition = { -100.0f, -100.0f };
 
-    /* struct line lines[MAXNODES]; */
-    int lineIndex = 0;
+    struct list_item *line_list = NULL;
+    struct list_item *selectedLine = line_list;
 
-    /* struct node nodes[MAXNODES]; */
-
-    /* struct node startNode; */
     struct list_item *node_list = NULL;
-    struct list_item *head_node = node_list;
+    struct node *selectedNode;
 
-    int structCount = 0;
-    int nodeIndex = 0;
+    int nodeCount = 0;
     int nodeDiameter = 10;
     bool isNodeDrawn = false;
     bool isNodeSelected = false;
     bool isNodeLocked = false;
-    struct node *selectedNode;
+
     Color nodeColors[NUM_OF_COLORS] = {DARKBLUE, RED,   DARKGREEN,  ORANGE,  PINK,
                                   PURPLE,   BLACK, BROWN,      GOLD,    MAROON,
                                   YELLOW,   GRAY,  MAGENTA,       LIME,    SKYBLUE,
@@ -42,15 +39,11 @@ int main(void)
 
     bool isLineStarted = false;
     bool isLineEnded = false;
-    int numOfLines = 0;
+    bool createLine = false;
+    bool endLine = false;
 
     SetTargetFPS(60);     
     //---------------------------------------------------------------------------------------
-
-    if (head_node == NULL) 
-      printf("NULL\n");
-    else
-      printf("Not NULL\n");
 
     // Main game loop
     while (!WindowShouldClose())    // Detect window close button or ESC key
@@ -69,16 +62,19 @@ int main(void)
           if (!isLineStarted && !isLineEnded) {
             isLineStarted = true;
             isLineEnded = false;
+            createLine = true;
           }
           else {
             isLineStarted = false;
             isLineEnded = true;
+            endLine = true;
           }
         }
 
         bool isSpaceFree = true;
         bool isMouseOverNode = false;
 
+        /* Check node collisions */
         struct list_item *place;
         struct list_item *place2;
         for (place = node_list; place != NULL; place = place->next) {
@@ -114,35 +110,42 @@ int main(void)
 
         /* Create Node */
         if (isNodeDrawn && isSpaceFree) {
-          /* struct list_item new_item; */
-          /* new_item.data = malloc(sizeof(struct node)); */
-          /* *(struct node*)head_node->data = startNode; */
           if (colorIndex >= NUM_OF_COLORS)
             colorIndex = 0;
 
-          struct node *new_node = create_node(structCount, colorIndex,
+          struct node *new_node = create_node(nodeCount, colorIndex,
                                               nodeColors, nodeDiameter,
                                               mousePosition);
-          printf("%d\n", new_node->id);
           node_list = add_to_list(node_list, new_node);
-          /* nodeIndex++; */
           colorIndex++;
-          structCount++;
+          nodeCount++;
           isNodeDrawn = false;
         }
-        /* if (node_list != NULL) */
-        /*   printf("\n\nThere is a node\n\n"); */
 
         // LINES---------------------
-        /* if (isNodeSelected) { */
-        /*   for (int k = 0; k < numOfLines; ++k) { */
-        /*     //Move lines too */
-        /*     if (nodes[selectedIndex].id == lines[k].startNode.id) */
-        /*       lines[k].startNode.position = nodes[selectedIndex].position; */
-        /*     if (nodes[selectedIndex].id == lines[k].endNode.id) */
-        /*       lines[k].endNode.position = nodes[selectedIndex].position; */
-        /*   } */
-        /* } */
+
+        if (createLine) {
+          struct line *new_line = malloc(sizeof(struct line));
+          new_line->startNode = *selectedNode;
+          line_list = add_to_list(line_list, new_line);
+          createLine = false;
+        }
+
+        if (endLine) {
+          ((struct line *)line_list->data)->endNode = *selectedNode;
+          endLine = false;
+        }
+
+        //Update line positions when moving node
+        struct list_item *line_head;
+        if (isNodeSelected) {
+          for (line_head = line_list; line_head != NULL; line_head = line_head->next) {
+            if (selectedNode->id == ((struct line *)line_head->data)->startNode.id)
+              ((struct line *)line_head->data)->startNode.position = selectedNode->position;
+            if (selectedNode->id == ((struct line *)line_head->data)->endNode.id)
+              ((struct line *)line_head->data)->endNode.position = selectedNode->position;
+          }
+        }
         //----------------------------------------------------------------------------------
         
         // Draw
@@ -151,57 +154,81 @@ int main(void)
         
         ClearBackground(RAYWHITE);
         
-        //Move Node
+        //Draw Moving Node (don't need)
         /* if (isNodeSelected) { */
-        /*   nodes[selectedIndex].position = mousePosition; */
-        /*   DrawCircleV(nodes[selectedIndex].position, */
-        /*               nodes[selectedIndex].diameter, */
-        /*               nodes[selectedIndex].color); */
-        /*   DrawText(TextFormat("%d", selectedIndex + 1), */
-        /*            nodes[selectedIndex].position.x - 20, */
-        /*            nodes[selectedIndex].position.y - 15, 8, BLACK); */
-          
+        /*   selectedNode->position = mousePosition; */
+        /*   DrawCircleV(selectedNode->position, */
+        /*               selectedNode->diameter, */
+        /*               selectedNode->color); */
+        /*   DrawText(TextFormat("%d", selectedNode->id + 1), */
+        /*            selectedNode->position.x - 20, */
+        /*            selectedNode->position.y - 15, 8, BLACK); */
         /* } */
 
-        /* if (!is_empty(head_node)) { */
-          struct list_item *place3;
-          for (place3 = node_list; place3 != NULL; place3 = place3->next) {
-            DrawCircleV(((struct node *)place3->data)->position,
-                        ((struct node *)place3->data)->diameter,
-                        ((struct node *)place3->data)->color);
-            DrawText(TextFormat("%d", ((struct node *)place3->data)->id + 1),
-                     ((struct node *)place3->data)->position.x - 20,
-                     ((struct node *)place3->data)->position.y - 15, 8, BLACK);
-          }
-        /* } */
+        // Draw Nodes
+        struct list_item *place3;
+        for (place3 = node_list; place3 != NULL; place3 = place3->next) {
+          if (isNodeSelected & !isLineEnded)
+            selectedNode->position = mousePosition;
+
+          DrawCircleV(((struct node *)place3->data)->position,
+                      ((struct node *)place3->data)->diameter,
+                      ((struct node *)place3->data)->color);
+          DrawText(TextFormat("%d", ((struct node *)place3->data)->id + 1),
+                   ((struct node *)place3->data)->position.x - 20,
+                   ((struct node *)place3->data)->position.y - 15, 8, BLACK);
+        }
 
         //Draw line before it is connected to end node
-        /* if (isLineStarted) { */
-        /*   lines[lineIndex].startNode = nodes[selectedIndex]; */
-        /*   DrawLine(lines[lineIndex].startNode.position.x, */
-        /*            lines[lineIndex].startNode.position.y, mousePosition.x, */
-        /*            mousePosition.y, BLACK); */
-        /* } else if (isLineEnded) { */
-        /*   lines[lineIndex].endNode = nodes[selectedIndex]; */
-        /*   DrawLine(lines[lineIndex].startNode.position.x, */
-        /*            lines[lineIndex].startNode.position.y, */
-        /*            lines[lineIndex].endNode.position.x, */
-        /*            lines[lineIndex].endNode.position.y, BLACK); */
-        /*   lineIndex++; */
-        /*   isLineStarted = false; */
-        /*   isLineEnded = false; */
-        /*   isNodeLocked = false; */
-        /*   numOfLines++; */
+        if (isLineStarted) {
+          /* ((struct line *)line_list->data)->startNode = selectedNode; */
+          DrawLine(((struct line *)line_list->data)->startNode.position.x,
+                   ((struct line *)line_list->data)->startNode.position.y,
+                   mousePosition.x, mousePosition.y, BLACK);
+        } else if (isLineEnded) {
+          if (line_list == NULL) {
+            printf("Error: malloc failed in Line Ended\n");
+            exit(EXIT_FAILURE);
+          }
+          /* ((struct line *)line_list->data)->endNode = selectedNode; */
+          DrawLine(((struct line *)line_list->data)->startNode.position.x,
+                   ((struct line *)line_list->data)->startNode.position.y,
+                   ((struct line *)line_list->data)->endNode.position.x,
+                   ((struct line *)line_list->data)->endNode.position.y,
+                   BLACK);
+          isLineStarted = false;
+          isLineEnded = false;
+          isNodeLocked = false;
+        }
+
+        /* struct list_item *line_head3; */
+        /* for (line_head = line_list; line_head != NULL; line_head = line_head->next) { */
+        /*   if (line_head3->data != NULL) { */
+        /*     struct line *current_line = (struct line *) line_head->data; */
+        /*     printf("Start node: (%f, %f), End node: (%f, %f)\n", */
+        /*            current_line->startNode->position.x, */
+        /*            current_line->startNode->position.y, */
+        /*            current_line->endNode->position.x, */
+        /*            current_line->endNode->position.y); */
+        /*   } */
         /* } */
 
         // draw lines
-        /* for (int k = 0; k < numOfLines; k++) { */
-        /*   DrawLine(lines[k].startNode.position.x, lines[k].startNode.position.y, */
-        /*            lines[k].endNode.position.x, lines[k].endNode.position.y, */
-        /*            BLACK); */
-        /* } */
+        if (line_list != NULL) {
+          struct list_item *line_head2;
+          for (line_head2 = line_list; line_head2 != NULL; line_head2 = line_head2->next) {
+            if (((struct line *)line_head2->data)->endNode.position.y != 0.0) {
+              DrawLine(((struct line *)line_head2->data)->startNode.position.x,
+                       ((struct line *)line_head2->data)->startNode.position.y,
+                       ((struct line *)line_head2->data)->endNode.position.x,
+                       ((struct line *)line_head2->data)->endNode.position.y,
+                       BLACK);
+            }
+          }
+        }
 
-        /* DrawText("Graph Maker", 10, 10, 20, DARKGRAY); */
+        if (line_list != NULL)
+          DrawText(TextFormat("%f", ((struct line *)line_list->data)->endNode.position.y), 10, 10, 20, DARKGRAY);
 
         EndDrawing();
         //----------------------------------------------------------------------------------

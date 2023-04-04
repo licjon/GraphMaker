@@ -21,6 +21,7 @@ struct list_item {
   struct list_item *next;
 };
 
+void CustomLog(int msgType, const char *text, va_list args);
 bool is_empty(struct list_item *list);
 struct list_item *add_to_list(struct list_item *list, void *n);
 struct list_item *search_list(struct list_item *list, int n);
@@ -29,6 +30,6 @@ int count_occurrences(struct list_item *list, int n);
 struct list_item *find_last(struct list_item *list, int n);
 struct list_item *insert_into_ordered_list(struct list_item *list, struct list_item *new_list_item);
 
-struct node *create_node(int structCount, int colorIndex, Color nodeColors[], int nodeDiameter, Vector2 mousePosition);
+struct node *create_node(int nodeCount, int colorIndex, Color nodeColors[], int nodeDiameter, Vector2 mousePosition);
 
 #endif

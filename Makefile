@@ -2,7 +2,7 @@ OBJS = main.c my_graph.c
 
 CC = clang
 
-COMPILER_FLAGS = -w
+COMPILER_FLAGS = -w -g2
 
 LINKER_FLAGS = -lraylib -lGL -lm -lpthread -ldl -lrt -lX11
 
