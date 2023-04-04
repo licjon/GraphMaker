@@ -1,10 +1,7 @@
 #include "raylib.h"
 #include <stdbool.h>
 #include <stdio.h>
-<<<<<<< HEAD:main.c
 #include "my_graph.h"
-=======
->>>>>>> origin/main:graphs.c
 
 #define MAXNODES 20
 
@@ -20,21 +17,6 @@ int main(void)
 
     Vector2 mousePosition = { -100.0f, -100.0f };
 
-<<<<<<< HEAD:main.c
-=======
-    struct node {
-      int id;
-      Vector2 position;
-      int diameter;
-      Color color;
-    };
-
-    struct line {
-      struct node startNode;
-      struct node endNode;
-    };
-
->>>>>>> origin/main:graphs.c
     struct line lines[MAXNODES];
     int lineIndex = 0;
 
@@ -117,20 +99,11 @@ int main(void)
 
         //Create Node
         if (isNodeDrawn && isSpaceFree && structCount <= MAXNODES - 1) {
-<<<<<<< HEAD:main.c
           nodes[nodeIndex] = create_node(structCount,
                                          colorIndex, nodeColors, nodeDiameter,
                                          mousePosition);
                     /* printf("%d coordinates: %f, %f \n", nodeIndex, */
           /*        nodes[nodeIndex].position.x, nodes[nodeIndex].position.y); */
-=======
-          nodes[nodeIndex].id = structCount;
-          nodes[nodeIndex].color = nodeColors[colorIndex];
-          nodes[nodeIndex].diameter = nodeDiameter;
-          nodes[nodeIndex].position = mousePosition;
-          printf("%d coordinates: %f, %f \n", nodeIndex,
-                 nodes[nodeIndex].position.x, nodes[nodeIndex].position.y);
->>>>>>> origin/main:graphs.c
           nodeIndex++;
           colorIndex++;
           structCount++;
