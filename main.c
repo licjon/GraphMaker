@@ -56,8 +56,8 @@ int main(void)
         // Draw node with left click
         if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && !isLineStarted) isNodeDrawn = true;
         // Move node with mouse left button
-        else if (IsMouseButtonDown(MOUSE_BUTTON_LEFT && !isNodeSelected)) isNodeSelected = true;
-        else if (IsMouseButtonReleased(MOUSE_BUTTON_LEFT  && !isLineStarted)) {
+        else if (IsMouseButtonDown(MOUSE_BUTTON_LEFT)) isNodeSelected = true;
+        else if (IsMouseButtonReleased(MOUSE_BUTTON_LEFT)) {
             isNodeSelected = false;
             isNodeLocked = false;
           }
@@ -165,7 +165,7 @@ int main(void)
         // Draw Nodes
         struct list_item *place3;
         for (place3 = node_list; place3 != NULL; place3 = place3->next) {
-          if (isNodeSelected && !isLineEnded)
+          if (isNodeSelected && !(isLineStarted || isLineEnded))
             selectedNode->position = mousePosition;
 
           DrawCircleV(((struct node *)place3->data)->position,
@@ -199,7 +199,9 @@ int main(void)
         }
 
         if (line_list != NULL)
-          DrawText(TextFormat("%f", ((struct line *)line_list->data)->endNode.position.y), 10, 10, 20, DARKGRAY);
+          DrawText(TextFormat("End node y pos: %f", ((struct line *)line_list->data)->endNode.position.y), 10, 10, 20, DARKGRAY);
+
+        DrawText(TextFormat("isLineStarted: %d", isLineStarted), 10, 50, 20, DARKGRAY);
 
         EndDrawing();
         //----------------------------------------------------------------------------------
