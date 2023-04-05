@@ -53,12 +53,15 @@ int main(void)
         //----------------------------------------------------------------------------------
         mousePosition = GetMousePosition();
 
-        if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) isNodeDrawn = true;
-        else if (IsMouseButtonDown(MOUSE_BUTTON_LEFT)) isNodeSelected = true;
-        else if (IsMouseButtonReleased(MOUSE_BUTTON_LEFT)) {
+        // Draw node with left click
+        if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && !isLineStarted) isNodeDrawn = true;
+        // Move node with mouse left button
+        else if (IsMouseButtonDown(MOUSE_BUTTON_LEFT && !isNodeSelected)) isNodeSelected = true;
+        else if (IsMouseButtonReleased(MOUSE_BUTTON_LEFT  && !isLineStarted)) {
             isNodeSelected = false;
             isNodeLocked = false;
           }
+        // Make line with right click
         else if (IsMouseButtonPressed(MOUSE_BUTTON_RIGHT)) {
           if (!isLineStarted && !isLineEnded) {
             isLineStarted = true;
@@ -88,6 +91,7 @@ int main(void)
             isNodeDrawn = false;
           }
           if (isMouseOverNode && isLineStarted && !isNodeLocked) {
+            isSpaceFree = false; // just added; is it needed
             selectedNode = place->data;
             isNodeLocked = true;
           } else if (isMouseOverNode && isLineEnded && isNodeLocked) {
@@ -132,9 +136,12 @@ int main(void)
           createLine = false;
         }
 
-        if (endLine) {
+        if (isLineEnded) {
           ((struct line *)line_list->data)->endNode = *selectedNode;
-          endLine = false;
+          /* endLine = false; */
+          isLineStarted = false;
+          isLineEnded = false;
+          isNodeLocked = false;
         }
 
         //Update line positions when moving node
@@ -155,21 +162,10 @@ int main(void)
         
         ClearBackground(RAYWHITE);
         
-        //Draw Moving Node (don't need)
-        /* if (isNodeSelected) { */
-        /*   selectedNode->position = mousePosition; */
-        /*   DrawCircleV(selectedNode->position, */
-        /*               selectedNode->diameter, */
-        /*               selectedNode->color); */
-        /*   DrawText(TextFormat("%d", selectedNode->id + 1), */
-        /*            selectedNode->position.x - 20, */
-        /*            selectedNode->position.y - 15, 8, BLACK); */
-        /* } */
-
         // Draw Nodes
         struct list_item *place3;
         for (place3 = node_list; place3 != NULL; place3 = place3->next) {
-          if (isNodeSelected & !isLineEnded)
+          if (isNodeSelected && !isLineEnded)
             selectedNode->position = mousePosition;
 
           DrawCircleV(((struct node *)place3->data)->position,
@@ -186,45 +182,19 @@ int main(void)
           DrawLine(((struct line *)line_list->data)->startNode.position.x,
                    ((struct line *)line_list->data)->startNode.position.y,
                    mousePosition.x, mousePosition.y, BLACK);
-        } else if (isLineEnded) {
-          if (line_list == NULL) {
-            printf("Error: malloc failed in Line Ended\n");
-            exit(EXIT_FAILURE);
-          }
-          /* ((struct line *)line_list->data)->endNode = selectedNode; */
-          /* DrawLine(((struct line *)line_list->data)->startNode.position.x, */
-          /*          ((struct line *)line_list->data)->startNode.position.y, */
-          /*          ((struct line *)line_list->data)->endNode.position.x, */
-          /*          ((struct line *)line_list->data)->endNode.position.y, */
-          /*          BLACK); */
-          isLineStarted = false;
-          isLineEnded = false;
-          isNodeLocked = false;
         }
-
-        /* struct list_item *line_head3; */
-        /* for (line_head = line_list; line_head != NULL; line_head = line_head->next) { */
-        /*   if (line_head3->data != NULL) { */
-        /*     struct line *current_line = (struct line *) line_head->data; */
-        /*     printf("Start node: (%f, %f), End node: (%f, %f)\n", */
-        /*            current_line->startNode->position.x, */
-        /*            current_line->startNode->position.y, */
-        /*            current_line->endNode->position.x, */
-        /*            current_line->endNode->position.y); */
-        /*   } */
-        /* } */
 
         // draw lines
         if (line_list != NULL) {
           struct list_item *line_head2;
           for (line_head2 = line_list; line_head2 != NULL; line_head2 = line_head2->next) {
-            if (((struct line *)line_head2->data)->endNode.position.y != 0.0) {
+            /* if (((struct line *)line_head2->data)->endNode.position.y != 0.0) { */
               DrawLine(((struct line *)line_head2->data)->startNode.position.x,
                        ((struct line *)line_head2->data)->startNode.position.y,
                        ((struct line *)line_head2->data)->endNode.position.x,
                        ((struct line *)line_head2->data)->endNode.position.y,
                        BLACK);
-            }
+            /* } */
           }
         }
 
