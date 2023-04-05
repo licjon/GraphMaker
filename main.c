@@ -1,4 +1,4 @@
-/* List version of Graph Maker */
+/* List version of Graph Maker 4/5*/
 #include "raylib.h"
 #include <stdbool.h>
 #include <stdio.h>
@@ -188,13 +188,13 @@ int main(void)
         if (line_list != NULL) {
           struct list_item *line_head2;
           for (line_head2 = line_list; line_head2 != NULL; line_head2 = line_head2->next) {
-            /* if (((struct line *)line_head2->data)->endNode.position.y != 0.0) { */
+            if (((struct line *)line_head2->data)->endNode.position.y > 0.0) {
               DrawLine(((struct line *)line_head2->data)->startNode.position.x,
                        ((struct line *)line_head2->data)->startNode.position.y,
                        ((struct line *)line_head2->data)->endNode.position.x,
                        ((struct line *)line_head2->data)->endNode.position.y,
                        BLACK);
-            /* } */
+            }
           }
         }
 
