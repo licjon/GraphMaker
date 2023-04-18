@@ -30,6 +30,10 @@ int count_occurrences(struct list_item *list, int n);
 struct list_item *find_last(struct list_item *list, int n);
 struct list_item *insert_into_ordered_list(struct list_item *list, struct list_item *new_list_item);
 
+
 struct node *create_node(int nodeCount, int colorIndex, Color nodeColors[], int nodeDiameter, Vector2 mousePosition);
+
+struct line *start_line(struct node *selectedNode); 
+void end_line(struct list_item *line_list, struct node *selectedNode); 
 
 #endif

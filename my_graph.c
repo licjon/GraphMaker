@@ -1,3 +1,4 @@
+#include <raylib.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
@@ -12,6 +13,17 @@ struct node *create_node(int nodeCount, int colorIndex, Color nodeColors[],
   node->position = mousePosition;
 
   return node;
+}
+
+struct line *start_line(struct node *selectedNode) {
+  struct line *new_line = malloc(sizeof(struct line));
+  new_line->startNode = *selectedNode;
+  new_line->endNode.position = new_line->startNode.position;
+  return new_line;
+}
+
+void end_line(struct list_item *line_list, struct node *selectedNode) {
+  ((struct line *)line_list->data)->endNode = *selectedNode;
 }
 
 bool is_empty(struct list_item *list) { return list == NULL; }

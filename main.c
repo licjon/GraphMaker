@@ -130,15 +130,13 @@ int main(void)
         // LINES---------------------
 
         if (createLine) {
-          struct line *new_line = malloc(sizeof(struct line));
-          new_line->startNode = *selectedNode;
+          struct line *new_line = start_line(selectedNode);
           line_list = add_to_list(line_list, new_line);
           createLine = false;
         }
 
         if (isLineEnded) {
-          ((struct line *)line_list->data)->endNode = *selectedNode;
-          /* endLine = false; */
+          end_line(line_list, selectedNode);
           isLineStarted = false;
           isLineEnded = false;
           isNodeLocked = false;
@@ -178,7 +176,6 @@ int main(void)
 
         //Draw line before it is connected to end node
         if (isLineStarted) {
-          /* ((struct line *)line_list->data)->startNode = selectedNode; */
           DrawLine(((struct line *)line_list->data)->startNode.position.x,
                    ((struct line *)line_list->data)->startNode.position.y,
                    mousePosition.x, mousePosition.y, BLACK);
@@ -188,20 +185,18 @@ int main(void)
         if (line_list != NULL) {
           struct list_item *line_head2;
           for (line_head2 = line_list; line_head2 != NULL; line_head2 = line_head2->next) {
-            if (((struct line *)line_head2->data)->endNode.position.y > 0.0) {
-              DrawLine(((struct line *)line_head2->data)->startNode.position.x,
-                       ((struct line *)line_head2->data)->startNode.position.y,
-                       ((struct line *)line_head2->data)->endNode.position.x,
-                       ((struct line *)line_head2->data)->endNode.position.y,
-                       BLACK);
-            }
+            DrawLine(((struct line *)line_head2->data)->startNode.position.x,
+                     ((struct line *)line_head2->data)->startNode.position.y,
+                     ((struct line *)line_head2->data)->endNode.position.x,
+                     ((struct line *)line_head2->data)->endNode.position.y,
+                     BLACK);
           }
         }
 
-        if (line_list != NULL)
-          DrawText(TextFormat("End node y pos: %f", ((struct line *)line_list->data)->endNode.position.y), 10, 10, 20, DARKGRAY);
+        /* if (line_list != NULL) */
+        /*   DrawText(TextFormat("End node y pos: %f", ((struct line *)line_list->data)->endNode.position.y), 10, 10, 20, DARKGRAY); */
 
-        DrawText(TextFormat("isLineStarted: %d", isLineStarted), 10, 50, 20, DARKGRAY);
+        /* DrawText(TextFormat("isLineStarted: %d", isLineStarted), 10, 50, 20, DARKGRAY); */
 
         EndDrawing();
         //----------------------------------------------------------------------------------
