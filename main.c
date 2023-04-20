@@ -21,11 +21,13 @@ int main(void)
     Vector2 mousePosition = { -100.0f, -100.0f };
 
     struct list_item *line_list = NULL;
-    struct list_item *selectedLine = line_list;
+    struct list_item *selectedLine = line_list;  //don't know why I need this, but it crashes if I delete it
 
     struct list_item *node_list = NULL;
     struct node *selectedNode;
 
+    struct graph cyclic_graph;
+    
     int nodeCount = 0;
     int nodeDiameter = 10;
     bool isNodeDrawn = false;
@@ -42,6 +44,8 @@ int main(void)
     bool isLineEnded = false;
     bool createLine = false;
     bool endLine = false;
+
+    int key_pressed = -1;
 
     SetTargetFPS(60);     
     //---------------------------------------------------------------------------------------
@@ -73,7 +77,27 @@ int main(void)
             isLineEnded = true;
             endLine = true;
           }
+        } else if (IsKeyDown(KEY_C)) {
+          /* isNodeSelected = false; */
+          isNodeDrawn = false;
+          key_pressed = GetKeyPressed();
+          key_pressed -= 48;
+
+          if (key_pressed >= 3 && key_pressed <= 9) {
+            printf("%d\n", key_pressed);
+            cyclic_graph = cyclic_graph_create(key_pressed, &nodeCount, nodeColors, nodeDiameter);
+            struct list_item *temp = cyclic_graph.nodes;
+            while (temp != NULL) {
+              struct list_item* new_node = (struct list_item*)malloc(sizeof(struct list_item));
+              new_node->data = temp->data;
+              new_node->next = node_list;
+              node_list = new_node;
+              temp = temp->next;
+            }
+          }
         }
+
+        print_node_list(node_list);
 
         bool isSpaceFree = true;
         bool isMouseOverNode = false;
@@ -194,7 +218,7 @@ int main(void)
         }
 
         /* if (line_list != NULL) */
-        /*   DrawText(TextFormat("End node y pos: %f", ((struct line *)line_list->data)->endNode.position.y), 10, 10, 20, DARKGRAY); */
+        /*   DrawText(TextFormat("End node x pos: %f\nEnd node y pos: %f", ((struct line *)line_list->data)->endNode.position.x, ((struct line *)line_list->data)->endNode.position.y), 10, 10, 20, DARKGRAY); */
 
         /* DrawText(TextFormat("isLineStarted: %d", isLineStarted), 10, 50, 20, DARKGRAY); */
 
