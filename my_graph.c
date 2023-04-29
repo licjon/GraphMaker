@@ -90,47 +90,49 @@ void CustomLog(int msgType, const char *text, va_list args)
     printf("\n");
 }
 
-/* typedef void (*cyclic_graph_ptr) (struct graph *graph); */
-/* cyclic_graph_ptr cyclic_graph_funs[7] = { */
-/*   c3_graph, c4_graph, c5_graph, c6_graph, c7_graph, c8_graph, c9_graph}; */
-
 Vector2 c3_node_positions[3] = {{380, 100}, {315, 195}, {450, 195}};
 
 struct graph cyclic_graph_create(int key, int *nodeCount, Color nodeColors[], int nodeDiameter) {
-  printf("cyclic_graph entered\n");
   struct graph cyclic_graph;
   cyclic_graph.nodes = NULL;
   cyclic_graph.lines = NULL;
 
   int colorIndex = 0;
   Vector2 nodePos;
-  
-  /* Vector2 node_positions[9] = {{0,0}, {0,0}, {0,0}, {0,0}, {0,0}, {0,0}, {0,0}, {0,0}, {0,0}}; */
+  bool isLineStarted = false; 
 
   for (int i = 0; i < key; i++) {
-
-    printf("2nd for loop\n");
+    //create node and add to list
     struct node *new_node = create_node(*nodeCount, colorIndex,
                                         nodeColors, nodeDiameter,
                                         c3_node_positions[i]);
-    
     cyclic_graph.nodes = add_to_list(cyclic_graph.nodes, new_node);
+
+    //update variables
     colorIndex++;
     (*nodeCount)++;
   }
+  //create lines and add to list
+  struct list_item *temp = cyclic_graph.nodes;
+  struct node *startNode = temp->data;
+  struct node *endNode = startNode;
 
-  print_node_list(cyclic_graph.nodes);
+  while (temp != NULL && temp->next != NULL) {
+    endNode = temp->next->data;
+    struct line *new_line = malloc(sizeof(struct line));
+    new_line->startNode = *startNode;
+    new_line->endNode = *endNode;
+    cyclic_graph.lines = add_to_list(cyclic_graph.lines, new_line);
+    /* ((struct line *)cyclic_graph.lines->data)->endNode = *(struct node *)temp->data; */
+    startNode = endNode;
+    temp = temp->next;
+  }
+  // add the last line connecting the last and first nodes
+  endNode = cyclic_graph.nodes->data;
+  struct line *new_line = malloc(sizeof(struct line));
+  new_line->startNode = *startNode;
+  new_line->endNode = *endNode;
+  cyclic_graph.lines = add_to_list(cyclic_graph.lines, new_line);
+
   return cyclic_graph;
 }
-
-/* void c3_graph(struct graph *g3) { */
-/*   g3 = malloc(sizeof(struct graph)); */
-/*   printf("3\n"); */
-/*   } */
-
-/* struct graph c4_graph(void){struct graph g3; printf("4\n"); return g3;} */
-/* struct graph c5_graph(void){struct graph g3; printf("5\n"); return g3;} */
-/* struct graph c6_graph(void){struct graph g3;printf("6\n");  return g3;} */
-/* struct graph c7_graph(void){struct graph g3;printf("7\n");  return g3;} */
-/* struct graph c8_graph(void){struct graph g3;printf("8\n");  return g3;} */
-/* struct graph c9_graph(void){struct graph g3;printf("9\n");  return g3;} */

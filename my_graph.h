@@ -45,12 +45,4 @@ void end_line(struct list_item *line_list, struct node *selectedNode);
 /* // Create cyclic graphs C3-C9 */
 struct graph cyclic_graph_create(int key, int *nodeCount, Color nodeColors[], int nodeDiameter);
 
-/* void c3_graph(struct graph *g3); */
-/* struct graph c4_graph(void); */
-/* struct graph c5_graph(void); */
-/* struct graph c6_graph(void); */
-/* struct graph c7_graph(void); */
-/* struct graph c8_graph(void); */
-/* struct graph c9_graph(void); */
-
 #endif
