@@ -99,7 +99,6 @@ struct graph cyclic_graph_create(int key, int *nodeCount, Color nodeColors[], in
 
   int colorIndex = 0;
   Vector2 nodePos;
-  bool isLineStarted = false; 
 
   for (int i = 0; i < key; i++) {
     //create node and add to list

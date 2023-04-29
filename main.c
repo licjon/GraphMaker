@@ -22,7 +22,6 @@ int main(void)
   Vector2 mousePosition = { -100.0f, -100.0f };
 
   struct list_item *line_list = NULL;
-  struct list_item *selectedLine = line_list;  //don't know why I need this, but it crashes if I delete it
 
   struct list_item *node_list = NULL;
   struct node *selectedNode;

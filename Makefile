@@ -1,6 +1,6 @@
 OBJS = main.c my_graph.c
 
-CC = clang
+CC = gcc
 
 COMPILER_FLAGS = -w -g2
 
