@@ -1,8 +1,8 @@
 OBJS = main.c my_graph.c
 
-CC = gcc
+CC = clang
 
-COMPILER_FLAGS = -w -g2
+COMPILER_FLAGS = -w -g2 -Wall -pedantic -Wextra -Werror -Wshadow -Wdouble-promotion -fno-common -Wpadded -Wuninitialized #-fanalyzer
 
 LINKER_FLAGS = -lraylib -lGL -lm -lpthread -ldl -lrt -lX11
 

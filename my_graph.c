@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <math.h>
 #include "my_graph.h"
 
 struct node *create_node(int nodeCount, int colorIndex, Color nodeColors[],
@@ -20,7 +21,7 @@ struct node *create_node(int nodeCount, int colorIndex, Color nodeColors[],
 }
 
 void print_node_list(struct list_item *node_list) {
-  struct list_item *p;
+  struct list_item *p = NULL;
   printf("Node list: \n");
   if (node_list == NULL)
     printf("Empty\n");
@@ -46,7 +47,7 @@ bool is_empty(struct list_item *list) { return list == NULL; }
 // Add to head of list
 struct list_item *add_to_list(struct list_item *list, void *n)
 {
-  struct list_item *new_list_item;
+  struct list_item *new_list_item = NULL;
 
   new_list_item = malloc(sizeof(struct list_item));
   if (new_list_item == NULL) {
@@ -59,7 +60,7 @@ struct list_item *add_to_list(struct list_item *list, void *n)
 }
 
 void free_list(struct list_item *list) {
-  struct list_item *temp;
+  struct list_item *temp = NULL;
 
   while (list != NULL) {
     temp = list;
@@ -90,15 +91,17 @@ void CustomLog(int msgType, const char *text, va_list args)
     printf("\n");
 }
 
-Vector2 c3_node_positions[3] = {{380, 100}, {315, 195}, {450, 195}};
+/* Vector2 c3_node_positions[3] = {{380, 100}, {315, 195}, {450, 195}}; */
 
-struct graph cyclic_graph_create(int key, int *nodeCount, Color nodeColors[], int nodeDiameter) {
+struct graph cyclic_graph_create(int key, int *nodeCount, Color nodeColors[], int nodeDiameter, Vector2 mousePosition) {
   struct graph cyclic_graph;
   cyclic_graph.nodes = NULL;
   cyclic_graph.lines = NULL;
 
   int colorIndex = 0;
   Vector2 nodePos;
+
+  Vector2 *c3_node_positions = triangle_vertices_from_centroid(mousePosition);
 
   for (int i = 0; i < key; i++) {
     //create node and add to list
@@ -134,4 +137,18 @@ struct graph cyclic_graph_create(int key, int *nodeCount, Color nodeColors[], in
   cyclic_graph.lines = add_to_list(cyclic_graph.lines, new_line);
 
   return cyclic_graph;
+}
+
+Vector2 *triangle_vertices_from_centroid(Vector2 centroid) {
+  Vector2 *vertices = malloc(3 * sizeof(centroid));
+  int side_length = 100;
+
+  vertices[0].x = centroid.x;
+  vertices[0].y = centroid.y - (sqrt(3)/3) * side_length;
+  vertices[1].x = centroid.x + side_length / 2.0;
+  vertices[1].y = centroid.y + (sqrt(3)/6) * side_length;
+  vertices[2].x = centroid.x - side_length / 2.0;
+  vertices[2].y = vertices[1].y;
+
+  return vertices;
 }

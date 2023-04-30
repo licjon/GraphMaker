@@ -13,7 +13,6 @@ int main(void)
 {
   // Initialization
   //--------------------------------------------------------------------------------------
-  printf("Start init...\n");
   const int screenWidth = 800;
   const int screenHeight = 450;
   /* SetTraceLogCallback(CustomLog); */
@@ -24,7 +23,7 @@ int main(void)
   struct list_item *line_list = NULL;
 
   struct list_item *node_list = NULL;
-  struct node *selectedNode;
+  struct node *selectedNode = NULL;
 
   struct graph cyclic_graph;
 
@@ -55,7 +54,6 @@ int main(void)
     {
       // Update
       //----------------------------------------------------------------------------------
-      printf("Start update\n");
       mousePosition = GetMousePosition();
 
       // Draw node with left click
@@ -85,9 +83,7 @@ int main(void)
         key_pressed -= 48;
 
         if (key_pressed >= 3 && key_pressed <= 9) {
-          printf("I was here");
-          printf("Key pressed: %d\n", key_pressed);
-          cyclic_graph = cyclic_graph_create(key_pressed, &nodeCount, nodeColors, nodeDiameter);
+          cyclic_graph = cyclic_graph_create(key_pressed, &nodeCount, nodeColors, nodeDiameter, mousePosition);
           struct list_item *temp = cyclic_graph.nodes;
           while (temp != NULL) {
             struct list_item* new_node = (struct list_item*)malloc(sizeof(struct list_item));
@@ -107,14 +103,13 @@ int main(void)
         }
       }
 
-      /* print_node_list(node_list); */
 
       bool isSpaceFree = true;
       bool isMouseOverNode = false;
 
       /* Check node collisions */
-      struct list_item *place;
-      struct list_item *place2;
+      struct list_item *place = NULL;
+      struct list_item *place2 = NULL;
       for (place = node_list; place != NULL; place = place->next) {
         isMouseOverNode = CheckCollisionPointCircle(
                                                     mousePosition,
@@ -178,7 +173,7 @@ int main(void)
       }
 
       //Update line positions when moving node
-      struct list_item *line_head;
+      struct list_item *line_head = NULL;
       if (isNodeSelected) {
         for (line_head = line_list; line_head != NULL; line_head = line_head->next) {
           if (selectedNode->id == ((struct line *)line_head->data)->startNode.id)
@@ -196,15 +191,12 @@ int main(void)
       ClearBackground(RAYWHITE);
         
       // Draw Nodes
-      struct list_item *place3;
+      struct list_item *place3 = NULL;
       for (place3 = node_list; place3 != NULL; place3 = place3->next) {
         if (isNodeSelected && !(isLineStarted || isLineEnded))
           if (selectedNode != NULL) {
-            printf("Selected node position: %f, %f\n", selectedNode->position.x, selectedNode->position.y);
             selectedNode->position = mousePosition;
-          } else {
-            printf("Error: selectedNode is NULL\n");
-          }
+          } 
 
         DrawCircleV(((struct node *)place3->data)->position,
                     ((struct node *)place3->data)->diameter,
@@ -223,7 +215,7 @@ int main(void)
 
       // draw lines
       if (line_list != NULL) {
-        struct list_item *line_head2;
+        struct list_item *line_head2 = NULL;
         for (line_head2 = line_list; line_head2 != NULL; line_head2 = line_head2->next) {
           DrawLine(((struct line *)line_head2->data)->startNode.position.x,
                    ((struct line *)line_head2->data)->startNode.position.y,
