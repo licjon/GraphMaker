@@ -93,7 +93,7 @@ void CustomLog(int msgType, const char *text, va_list args)
 
 /* Vector2 c3_node_positions[3] = {{380, 100}, {315, 195}, {450, 195}}; */
 
-struct graph cyclic_graph_create(int key, int *nodeCount, Color nodeColors[], int nodeDiameter, Vector2 mousePosition) {
+struct graph cyclic_graph_create(int key, int *nodeCount, Color nodeColors[], int nodeDiameter, Vector2 mousePosition, int num_nodes) {
   struct graph cyclic_graph;
   cyclic_graph.nodes = NULL;
   cyclic_graph.lines = NULL;
@@ -101,7 +101,7 @@ struct graph cyclic_graph_create(int key, int *nodeCount, Color nodeColors[], in
   int colorIndex = 0;
   Vector2 nodePos;
 
-  Vector2 *c3_node_positions = triangle_vertices_from_centroid(mousePosition);
+  Vector2 *c3_node_positions = n_vertices_from_centroid(mousePosition, num_nodes);
 
   for (int i = 0; i < key; i++) {
     //create node and add to list
@@ -149,6 +149,27 @@ Vector2 *triangle_vertices_from_centroid(Vector2 centroid) {
   vertices[1].y = centroid.y + (sqrt(3)/6) * side_length;
   vertices[2].x = centroid.x - side_length / 2.0;
   vertices[2].y = vertices[1].y;
+
+  return vertices;
+}
+
+Vector2 *n_vertices_from_centroid(Vector2 centroid, int num_nodes) {
+  Vector2 *vertices = malloc(num_nodes * sizeof(Vector2));
+  double radius = 70;
+  double angle_increment_value = 2 * M_PI / num_nodes;
+  double angle = 0;
+  
+  if (num_nodes % 2 == 0) { 
+    angle = -(M_PI / 2) - (M_PI / num_nodes);
+  } else {
+    angle = -(M_PI / 2);
+  }
+  
+  for (int i = 0; i < num_nodes; i++) {
+     vertices[i].x = centroid.x + cos(angle) * radius;
+     vertices[i].y = centroid.y + sin(angle) * radius;
+     angle += angle_increment_value;
+  }
 
   return vertices;
 }

@@ -43,7 +43,9 @@ struct line *start_line(struct node *selectedNode);
 void end_line(struct list_item *line_list, struct node *selectedNode);
 
 /* // Create cyclic graphs C3-C9 */
-struct graph cyclic_graph_create(int key, int *nodeCount, Color nodeColors[], int nodeDiameter, Vector2 mousePosition);
+struct graph cyclic_graph_create(int key, int *nodeCount, Color nodeColors[], int nodeDiameter, Vector2 mousePosition, int num_nodes);
 
 Vector2 *triangle_vertices_from_centroid(Vector2 centroid);
+
+Vector2 *n_vertices_from_centroid(Vector2 centroid, int num_nodes);
 #endif
