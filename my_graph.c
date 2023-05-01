@@ -91,19 +91,16 @@ void CustomLog(int msgType, const char *text, va_list args)
     printf("\n");
 }
 
-/* Vector2 c3_node_positions[3] = {{380, 100}, {315, 195}, {450, 195}}; */
-
-struct graph cyclic_graph_create(int key, int *nodeCount, Color nodeColors[], int nodeDiameter, Vector2 mousePosition, int num_nodes) {
+struct graph cyclic_graph_create(int num_nodes, int *nodeCount, Color nodeColors[], int nodeDiameter, Vector2 mousePosition) {
   struct graph cyclic_graph;
   cyclic_graph.nodes = NULL;
   cyclic_graph.lines = NULL;
 
   int colorIndex = 0;
-  Vector2 nodePos;
 
   Vector2 *c3_node_positions = n_vertices_from_centroid(mousePosition, num_nodes);
 
-  for (int i = 0; i < key; i++) {
+  for (int i = 0; i < num_nodes; i++) {
     //create node and add to list
     struct node *new_node = create_node(*nodeCount, colorIndex,
                                         nodeColors, nodeDiameter,
@@ -172,4 +169,21 @@ Vector2 *n_vertices_from_centroid(Vector2 centroid, int num_nodes) {
   }
 
   return vertices;
+}
+
+void update_lists(struct graph *graph, struct list_item **node_list, struct list_item **line_list) {
+  struct list_item *temp = graph->nodes;
+  struct list_item *temp2 = graph->lines;
+  while (temp != NULL && temp2 != NULL) {
+    struct list_item* new_node = (struct list_item*)malloc(sizeof(struct list_item));
+    new_node->data = temp->data;
+    new_node->next = *node_list;
+    *node_list = new_node;
+    temp = temp->next;
+    struct list_item* new_line = (struct list_item*)malloc(sizeof(struct list_item));
+    new_line->data = temp2->data;
+    new_line->next = *line_list;
+    *line_list = new_line;
+    temp2 = temp2->next;
+  }
 }

@@ -83,23 +83,12 @@ int main(void)
         key_pressed -= 48;
 
         if (key_pressed >= 3 && key_pressed <= 9) {
-          cyclic_graph = cyclic_graph_create(key_pressed, &nodeCount, nodeColors, nodeDiameter, mousePosition, key_pressed);
-          struct list_item *temp = cyclic_graph.nodes;
-          while (temp != NULL) {
-            struct list_item* new_node = (struct list_item*)malloc(sizeof(struct list_item));
-            new_node->data = temp->data;
-            new_node->next = node_list;
-            node_list = new_node;
-            temp = temp->next;
-          }
-          struct list_item *temp2 = cyclic_graph.lines;
-          while (temp2 != NULL) {
-            struct list_item* new_line = (struct list_item*)malloc(sizeof(struct list_item));
-            new_line->data = temp2->data;
-            new_line->next = line_list;
-            line_list = new_line;
-            temp2 = temp2->next;
-          }
+          cyclic_graph = cyclic_graph_create(key_pressed,
+                                             &nodeCount,
+                                             nodeColors,
+                                             nodeDiameter,
+                                             mousePosition);
+          update_lists(&cyclic_graph, &node_list, &line_list);
         }
       }
 
