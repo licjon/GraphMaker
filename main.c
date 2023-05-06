@@ -76,8 +76,7 @@ int main(void)
           isLineStarted = true;
           isLineEnded = false;
           createLine = true;
-        }
-        else {
+        } else {
           isLineStarted = false;
           isLineEnded = true;
           endLine = true;
@@ -97,6 +96,7 @@ int main(void)
                                              nodeDiameter,
                                              mousePosition);
           update_lists(&cyclic_graph, &node_list, &line_list);
+          isCPressed = false;
         }
       } else if (IsKeyDown(KEY_K)) {
         isKPressed = true;
@@ -113,8 +113,12 @@ int main(void)
                                                  nodeDiameter,
                                                  mousePosition);
           update_lists(&complete_graph, &node_list, &line_list);
+          isKPressed = false;
         }
-      } 
+      } else if (key_pressed != KEY_C || key_pressed != KEY_K) {
+        isCPressed = false;
+        isKPressed = false;
+      }
 
 
       bool isSpaceFree = true;
