@@ -46,6 +46,11 @@ int main(void)
   bool endLine = false;
 
   int key_pressed = -1;
+  bool isCPressed = false;
+  float cPressedFrame = 0.0;
+
+  bool isKPressed = false;
+  float kPressedFrame = 0.0;
 
   SetTargetFPS(60);     
   //---------------------------------------------------------------------------------------
@@ -77,7 +82,10 @@ int main(void)
           isLineEnded = true;
           endLine = true;
         }
-      } else if (IsKeyDown(KEY_C)) {
+      } else if (IsKeyPressed(KEY_C)) {
+        isCPressed = true;
+        cPressedFrame = GetFrameTime();
+      } else if (isCPressed) {
         isNodeDrawn = false;
         key_pressed = GetKeyPressed();
         key_pressed -= 48;
@@ -91,11 +99,14 @@ int main(void)
           update_lists(&cyclic_graph, &node_list, &line_list);
         }
       } else if (IsKeyDown(KEY_K)) {
+        isKPressed = true;
+        kPressedFrame = GetFrameTime();
+      } else if (isKPressed) {
         isNodeDrawn = false;
         key_pressed = GetKeyPressed();
         key_pressed -= 48;
 
-        if (key_pressed >= 3 && key_pressed <= 9) {
+        if (key_pressed >= 2 && key_pressed <= 9) {
           complete_graph = complete_graph_create(key_pressed,
                                                  &nodeCount,
                                                  nodeColors,
