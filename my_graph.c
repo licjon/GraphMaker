@@ -3,9 +3,11 @@
 #include <stdlib.h>
 #include <time.h>
 #include <math.h>
+#include <string.h>
 #include "my_graph.h"
 
-struct node *create_node(int nodeCount, int colorIndex, Color nodeColors[],
+
+struct node *node_create(int nodeCount, int colorIndex, Color nodeColors[],
                         int nodeDiameter, Vector2 mousePosition) {
   struct node *node = malloc(sizeof(struct node));
   if (node != NULL) {
@@ -14,7 +16,7 @@ struct node *create_node(int nodeCount, int colorIndex, Color nodeColors[],
     node->diameter = nodeDiameter;
     node->position = mousePosition;
   } else {
-    printf("Node is null in create_node\n");
+    printf("Node is null in node_create\n");
     exit(1);
   }
   return node;
@@ -29,6 +31,24 @@ void print_node_list(struct list_item *node_list) {
   for (p = node_list; p != NULL; p = p->next) {
     printf("id: %d\nx: %f\ny: %f\n\n", ((struct node *)p->data)->id, ((struct node *)p->data)->position.x, ((struct node *)p->data)->position.y);
   }
+}
+
+void print_lines_list(struct list_item *lines) {
+  struct list_item *p = NULL;
+  printf("\n");
+  if (lines == NULL)
+    printf("Empty\n");
+                 
+  for (p = lines; p != NULL; p = p->next) {
+    printf("start node id: %d end node id: %d\n", ((struct line *)p->data)->startNode.id, ((struct line *)p->data)->endNode.id);
+  }
+}
+
+struct line *line_create(struct node *startNode, struct node *endNode) {
+  struct line *new_line = malloc(sizeof(struct line));
+  new_line->startNode = *startNode;
+  new_line->endNode = *endNode;
+  return new_line;
 }
 
 struct line *start_line(struct node *selectedNode) {
@@ -98,19 +118,21 @@ struct graph cyclic_graph_create(int num_nodes, int *nodeCount, Color nodeColors
 
   int colorIndex = 0;
 
-  Vector2 *c3_node_positions = n_vertices_from_centroid(mousePosition, num_nodes);
+  Vector2 *node_positions = n_vertices_from_centroid(mousePosition, num_nodes);
 
   for (int i = 0; i < num_nodes; i++) {
     //create node and add to list
-    struct node *new_node = create_node(*nodeCount, colorIndex,
+    struct node *new_node = node_create(*nodeCount, colorIndex,
                                         nodeColors, nodeDiameter,
-                                        c3_node_positions[i]);
+                                        node_positions[i]);
+
     cyclic_graph.nodes = add_to_list(cyclic_graph.nodes, new_node);
 
     //update variables
     colorIndex++;
     (*nodeCount)++;
   }
+  free(node_positions);
   //create lines and add to list
   struct list_item *temp = cyclic_graph.nodes;
   struct node *startNode = temp->data;
@@ -118,36 +140,17 @@ struct graph cyclic_graph_create(int num_nodes, int *nodeCount, Color nodeColors
 
   while (temp != NULL && temp->next != NULL) {
     endNode = temp->next->data;
-    struct line *new_line = malloc(sizeof(struct line));
-    new_line->startNode = *startNode;
-    new_line->endNode = *endNode;
+    struct line *new_line = line_create(startNode, endNode);
     cyclic_graph.lines = add_to_list(cyclic_graph.lines, new_line);
-    /* ((struct line *)cyclic_graph.lines->data)->endNode = *(struct node *)temp->data; */
     startNode = endNode;
     temp = temp->next;
   }
   // add the last line connecting the last and first nodes
   endNode = cyclic_graph.nodes->data;
-  struct line *new_line = malloc(sizeof(struct line));
-  new_line->startNode = *startNode;
-  new_line->endNode = *endNode;
+  struct line *new_line = line_create(startNode, endNode);
   cyclic_graph.lines = add_to_list(cyclic_graph.lines, new_line);
 
   return cyclic_graph;
-}
-
-Vector2 *triangle_vertices_from_centroid(Vector2 centroid) {
-  Vector2 *vertices = malloc(3 * sizeof(centroid));
-  int side_length = 100;
-
-  vertices[0].x = centroid.x;
-  vertices[0].y = centroid.y - (sqrt(3)/3) * side_length;
-  vertices[1].x = centroid.x + side_length / 2.0;
-  vertices[1].y = centroid.y + (sqrt(3)/6) * side_length;
-  vertices[2].x = centroid.x - side_length / 2.0;
-  vertices[2].y = vertices[1].y;
-
-  return vertices;
 }
 
 Vector2 *n_vertices_from_centroid(Vector2 centroid, int num_nodes) {
@@ -186,4 +189,64 @@ void update_lists(struct graph *graph, struct list_item **node_list, struct list
     *line_list = new_line;
     temp2 = temp2->next;
   }
+  // If node list is longer than line list, add the remaining nodes to node list
+  while (temp != NULL) {
+    struct list_item* new_node = (struct list_item*)malloc(sizeof(struct list_item));
+    new_node->data = temp->data;
+    new_node->next = *node_list;
+    *node_list = new_node;
+    temp = temp->next;
+  }
+  // If line list is longer than node list, add the remaining lines to line list
+  while (temp2 != NULL) {
+    struct list_item* new_line = (struct list_item*)malloc(sizeof(struct list_item));
+    new_line->data = temp2->data;
+    new_line->next = *line_list;
+    *line_list = new_line;
+    temp2 = temp2->next;
+  }
+}
+
+struct graph complete_graph_create(int num_nodes, int *nodeCount, Color nodeColors[], int nodeDiameter, Vector2 mousePosition) {
+    struct graph complete_graph;
+    complete_graph.nodes = NULL;
+    complete_graph.lines = NULL;
+
+    int colorIndex = 0;
+
+    // Generate node positions
+    Vector2 *nodePositions = n_vertices_from_centroid(mousePosition, num_nodes);
+
+    // Create nodes
+    for (int i = 0; i < num_nodes; i++) {
+      //create node and add to list
+      struct node *new_node = node_create(*nodeCount, colorIndex,
+                                          nodeColors, nodeDiameter,
+                                          nodePositions[i]);
+      
+      complete_graph.nodes = add_to_list(complete_graph.nodes, new_node);
+      
+      //update variables
+      colorIndex++;
+      (*nodeCount)++;
+    }
+    // Create remaining lines to make complete graph
+    struct list_item *temp1 = complete_graph.nodes;
+    while (temp1 != NULL && temp1->next != NULL) {
+        struct list_item *temp2 = temp1->next;
+        while (temp2 != NULL) {
+            struct node *startNode = temp1->data;
+            struct node *endNode = temp2->data;
+            struct line *new_line = malloc(sizeof(struct line));
+            new_line->startNode = *startNode;
+            new_line->endNode = *endNode;
+            complete_graph.lines = add_to_list(complete_graph.lines, new_line);
+            temp2 = temp2->next;
+        }
+        temp1 = temp1->next;
+    }
+
+    free(nodePositions);
+
+    return complete_graph;
 }

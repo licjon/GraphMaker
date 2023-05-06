@@ -36,17 +36,26 @@ struct list_item *find_last(struct list_item *list, int n);
 struct list_item *insert_into_ordered_list(struct list_item *list, struct list_item *new_list_item);
 void free_list(struct list_item *list);
 
-struct node *create_node(int nodeCount, int colorIndex, Color nodeColors[], int nodeDiameter, Vector2 mousePosition);
+struct node *node_create(int nodeCount, int colorIndex, Color nodeColors[], int nodeDiameter, Vector2 mousePosition);
 void print_node_list(struct list_item *nodes);
+
+struct line *line_create(struct node *startNode, struct node *endNode);
 
 struct line *start_line(struct node *selectedNode);
 void end_line(struct list_item *line_list, struct node *selectedNode);
 
 struct graph cyclic_graph_create(int num_nodes, int *nodeCount, Color nodeColors[], int nodeDiameter, Vector2 mousePosition);
 
-Vector2 *triangle_vertices_from_centroid(Vector2 centroid);
-
 Vector2 *n_vertices_from_centroid(Vector2 centroid, int num_nodes);
 
 void update_lists(struct graph *graph, struct list_item **node_list, struct list_item **line_list); 
+
+struct graph complete_graph_create(int num_nodes, int *nodeCount, Color nodeColors[], int nodeDiameter, Vector2 mousePosition);
+
+int line_exists(struct list_item *lines, struct node *startNode, struct node *endNode);
+
+int nodes_equal(struct node *node1, struct node *node2);
+
+//debugging
+void print_lines_list(struct list_item *lines);
 #endif

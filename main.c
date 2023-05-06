@@ -15,7 +15,7 @@ int main(void)
   //--------------------------------------------------------------------------------------
   const int screenWidth = 800;
   const int screenHeight = 450;
-  /* SetTraceLogCallback(CustomLog); */
+  SetTraceLogCallback(CustomLog);
   InitWindow(screenWidth, screenHeight, "Graph Maker");
 
   Vector2 mousePosition = { -100.0f, -100.0f };
@@ -26,6 +26,7 @@ int main(void)
   struct node *selectedNode = NULL;
 
   struct graph cyclic_graph;
+  struct graph complete_graph;
 
   int nodeCount = 0;
   int nodeDiameter = 10;
@@ -77,7 +78,6 @@ int main(void)
           endLine = true;
         }
       } else if (IsKeyDown(KEY_C)) {
-        /* isNodeSelected = false; */
         isNodeDrawn = false;
         key_pressed = GetKeyPressed();
         key_pressed -= 48;
@@ -90,7 +90,20 @@ int main(void)
                                              mousePosition);
           update_lists(&cyclic_graph, &node_list, &line_list);
         }
-      }
+      } else if (IsKeyDown(KEY_K)) {
+        isNodeDrawn = false;
+        key_pressed = GetKeyPressed();
+        key_pressed -= 48;
+
+        if (key_pressed >= 3 && key_pressed <= 9) {
+          complete_graph = complete_graph_create(key_pressed,
+                                                 &nodeCount,
+                                                 nodeColors,
+                                                 nodeDiameter,
+                                                 mousePosition);
+          update_lists(&complete_graph, &node_list, &line_list);
+        }
+      } 
 
 
       bool isSpaceFree = true;
@@ -137,7 +150,7 @@ int main(void)
         if (colorIndex >= NUM_OF_COLORS)
           colorIndex = 0;
 
-        struct node *new_node = create_node(nodeCount, colorIndex,
+        struct node *new_node = node_create(nodeCount, colorIndex,
                                             nodeColors, nodeDiameter,
                                             mousePosition);
         node_list = add_to_list(node_list, new_node);
@@ -156,7 +169,6 @@ int main(void)
 
       if (isLineEnded) {
         end_line(line_list, selectedNode);
-        isLineStarted = false;
         isLineEnded = false;
         isNodeLocked = false;
       }
