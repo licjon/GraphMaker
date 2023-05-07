@@ -131,11 +131,12 @@ int main(void)
         isMouseOverNode = CheckCollisionPointCircle(
                                                     mousePosition,
                                                     ((struct node *)place->data)->position,
-                                                    nodeDiameter / 1.5);
+                                                    nodeDiameter / 1.01);
 
         if (isMouseOverNode && !(isLineStarted || isLineEnded)) {
           isSpaceFree = false;
           isNodeDrawn = false;
+          selectedNode = place->data;
         }
         if (isMouseOverNode && isLineStarted && !isNodeLocked) {
           isSpaceFree = false; // just added; is it needed
@@ -211,7 +212,20 @@ int main(void)
       for (place3 = node_list; place3 != NULL; place3 = place3->next) {
         if (isNodeSelected && !(isLineStarted || isLineEnded))
           if (selectedNode != NULL) {
-            selectedNode->position = mousePosition;
+            if (mousePosition.x > screenWidth) {
+              selectedNode->position.x = screenWidth;
+            } else if (mousePosition.x < 0) {
+              selectedNode->position.x = 0;
+            } else {
+              selectedNode->position.x = mousePosition.x;
+            }
+            if (mousePosition.y > screenHeight) {
+              selectedNode->position.y = screenHeight;
+            } else if (mousePosition.y < 0) {
+              selectedNode->position.y = 0;
+            } else {
+              selectedNode->position.y = mousePosition.y;
+            }
           } 
 
         DrawCircleV(((struct node *)place3->data)->position,
