@@ -23,6 +23,7 @@ int main(void)
   struct list_item *line_list = NULL;
 
   struct list_item *node_list = NULL;
+
   struct node *selectedNode = NULL;
 
   struct graph cyclic_graph;
@@ -39,6 +40,9 @@ int main(void)
                                      YELLOW,   GRAY,  MAGENTA,       LIME,    SKYBLUE,
                                      VIOLET,   BEIGE, DARKBROWN,  GREEN,   LIGHTGRAY};
   int colorIndex = 0;
+
+  float selectionDiameter = nodeDiameter / 1.01;
+
 
   bool isLineStarted = false;
   bool isLineEnded = false;
@@ -131,7 +135,7 @@ int main(void)
         isMouseOverNode = CheckCollisionPointCircle(
                                                     mousePosition,
                                                     ((struct node *)place->data)->position,
-                                                    nodeDiameter / 1.01);
+                                                    selectionDiameter);
 
         if (isMouseOverNode && !(isLineStarted || isLineEnded)) {
           isSpaceFree = false;
@@ -226,6 +230,7 @@ int main(void)
             } else {
               selectedNode->position.y = mousePosition.y;
             }
+            
           } 
 
         DrawCircleV(((struct node *)place3->data)->position,
@@ -235,6 +240,12 @@ int main(void)
                  ((struct node *)place3->data)->position.x - 20,
                  ((struct node *)place3->data)->position.y - 15, 8, BLACK);
       }
+
+      if (isNodeSelected)
+          DrawCircleLines(selectedNode->position.x,
+                          selectedNode->position.y,
+                          selectedNode->diameter + (selectedNode->diameter / 2.0),
+                          selectedNode->color);
 
       //Draw line before it is connected to end node
       if (isLineStarted) {
