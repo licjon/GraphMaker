@@ -47,7 +47,6 @@ void ToggleFullScreenWindow(int windowWidth, int windowHeight)
 }
 
 
-
 int main(void)
 {
   // Initialization
@@ -95,6 +94,13 @@ int main(void)
   bool isKPressed = false;
   float kPressedFrame = 0.0;
 
+  bool isSelecting = false;
+
+  Vector2 startAreaPosition = {0};
+  Vector2 endAreaPosition = {0};
+  Rectangle selectionRect = {0};
+  Color backgroundColor = RAYWHITE;
+  
   SetTargetFPS(60);     
   //---------------------------------------------------------------------------------------
 
@@ -105,8 +111,36 @@ int main(void)
       //----------------------------------------------------------------------------------
       mousePosition = GetMousePosition();
 
+      if (IsMouseButtonDown(MOUSE_BUTTON_MIDDLE)) {
+        if (!isSelecting) {
+          startAreaPosition = mousePosition;
+          isSelecting = true;
+        }
+
+        endAreaPosition = mousePosition;
+        float width = endAreaPosition.x - startAreaPosition.x;
+        float height = endAreaPosition.y - startAreaPosition.y;
+        
+        if (width < 0) {
+          selectionRect.x = endAreaPosition.x;
+          selectionRect.width = -width;
+        } else {
+          selectionRect.x = startAreaPosition.x;
+          selectionRect.width = width;
+        }
+        if (height < 0) {
+          selectionRect.y = endAreaPosition.y;
+          selectionRect.height = -height;
+        } else {
+          selectionRect.y = startAreaPosition.y;
+          selectionRect.height = height;
+        }
+      } else if (isSelecting) {
+        isSelecting = false;
+      }
+      
       // Draw node with left click
-      if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && !isLineStarted) isNodeDrawn = true;
+      else if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && !isLineStarted) isNodeDrawn = true;
       // Move node with mouse left button
       else if (IsMouseButtonDown(MOUSE_BUTTON_LEFT)) isNodeSelected = true;
       else if (IsMouseButtonReleased(MOUSE_BUTTON_LEFT)) {
@@ -224,14 +258,17 @@ int main(void)
         isNodeDrawn = false;
       }
 
+                
       // LINES---------------------
 
+      struct node start_node;
       if (createLine) {
         struct line *new_line = start_line(selectedNode);
         line_list = add_to_list(line_list, new_line);
         createLine = false;
       }
 
+      struct node end_node;
       if (isLineEnded) {
         end_line(line_list, selectedNode);
         isLineEnded = false;
@@ -254,7 +291,7 @@ int main(void)
       //----------------------------------------------------------------------------------
       BeginDrawing();
         
-      ClearBackground(RAYWHITE);
+      ClearBackground(backgroundColor);
         
       // Draw Nodes
       struct list_item *currentNode3 = NULL;
@@ -312,6 +349,10 @@ int main(void)
         }
       }
 
+      if (isSelecting)
+        {
+          DrawRectangleLinesEx(selectionRect, 2, BLUE); 
+        }
       /* if (line_list != NULL) */
       /*   DrawText(TextFormat("End node x pos: %f\nEnd node y pos: %f", ((struct line *)line_list->data)->endNode.position.x, ((struct line *)line_list->data)->endNode.position.y), 10, 10, 20, DARKGRAY); */
 
