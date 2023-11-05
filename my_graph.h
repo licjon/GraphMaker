@@ -2,6 +2,7 @@
 #define MY_GRAPH_H
 
 #include <stdbool.h>   /* C99 only */
+#include <assert.h>
 #include "raylib.h"
 
 struct node {
@@ -9,7 +10,11 @@ struct node {
   int diameter;       
   Color color;        
   Vector2 position;   
+  bool selected;
 };
+
+/* static_assert(sizeof(int) * 2 + sizeof(Color) + sizeof(Vector2) + sizeof(bool), */
+/*               "struct node must not have any padding"); */
 
 struct line {
   struct node startNode;

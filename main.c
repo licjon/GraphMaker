@@ -8,13 +8,52 @@
 #define NUM_OF_COLORS 20
 
 //------------------------------------------------------------------------------------
+int GetDisplayWidth()
+{
+  if (IsWindowFullscreen())
+    {
+      int monitor = GetCurrentMonitor();
+      return GetMonitorWidth(monitor);
+    }
+  else{
+    return GetScreenWidth();
+  }
+}
+
+int GetDisplayHeight()
+{
+  if (IsWindowFullscreen())
+    {
+      int monitor = GetCurrentMonitor();
+      return GetMonitorHeight(monitor);
+    }
+  else{
+    return GetScreenHeight();
+  }
+}
+
+void ToggleFullScreenWindow(int windowWidth, int windowHeight)
+{
+  if (!IsWindowFullscreen())
+    {
+      int monitor = GetCurrentMonitor();
+      SetWindowSize(GetDisplayWidth(), GetDisplayHeight());
+      ToggleFullscreen();
+    }
+  else{
+    ToggleFullscreen();
+    SetWindowSize(windowWidth, windowHeight);
+  }
+}
+
+
 
 int main(void)
 {
   // Initialization
   //--------------------------------------------------------------------------------------
-  const int screenWidth = 800;
-  const int screenHeight = 450;
+  const int screenWidth = 2560;
+  const int screenHeight = 1440;
   SetTraceLogCallback(CustomLog);
   InitWindow(screenWidth, screenHeight, "Graph Maker");
 
@@ -102,7 +141,7 @@ int main(void)
           update_lists(&cyclic_graph, &node_list, &line_list);
           isCPressed = false;
         }
-      } else if (IsKeyDown(KEY_K)) {
+      } else if (IsKeyPressed(KEY_K)) {
         isKPressed = true;
         kPressedFrame = GetFrameTime();
       } else if (isKPressed) {
@@ -123,41 +162,47 @@ int main(void)
         isCPressed = false;
         isKPressed = false;
       }
+      if (IsKeyPressed(KEY_SPACE)) {
+        ToggleFullScreenWindow(screenWidth, screenHeight);
+      }
 
 
       bool isSpaceFree = true;
       bool isMouseOverNode = false;
 
       /* Check node collisions */
-      struct list_item *place = NULL;
-      struct list_item *place2 = NULL;
-      for (place = node_list; place != NULL; place = place->next) {
+      struct list_item *currentNode = NULL;
+      struct list_item *currentNode2 = NULL;
+      for (currentNode = node_list; currentNode != NULL; currentNode = currentNode->next) {
         isMouseOverNode = CheckCollisionPointCircle(
                                                     mousePosition,
-                                                    ((struct node *)place->data)->position,
+                                                    ((struct node *)currentNode->data)->position,
                                                     selectionDiameter);
 
-        if (isMouseOverNode && !(isLineStarted || isLineEnded)) {
+        if (isMouseOverNode && !(isLineStarted || isLineEnded) && !isNodeLocked) {
+          /* Then create node */
           isSpaceFree = false;
           isNodeDrawn = false;
-          selectedNode = place->data;
+          selectedNode = currentNode->data;
         }
         if (isMouseOverNode && isLineStarted && !isNodeLocked) {
-          isSpaceFree = false; // just added; is it needed
-          selectedNode = place->data;
+          /* Then end line */
+          isSpaceFree = false;
           isNodeLocked = true;
+          selectedNode = currentNode->data;
         } else if (isMouseOverNode && isLineEnded && isNodeLocked) {
-          selectedNode = place->data;
+          /* Complete line */
+          selectedNode = currentNode->data;
         }
 
-        for (place2 = node_list; place2 != NULL; place2 = place2->next) {
-          if (!CheckCollisionCircles(((struct node *)place->data)->position,
+        for (currentNode2 = node_list; currentNode2 != NULL; currentNode2 = currentNode2->next) {
+          if (!CheckCollisionCircles(((struct node *)currentNode->data)->position,
                                      nodeDiameter / 2.0,
-                                     ((struct node *)place2->data)->position,
+                                     ((struct node *)currentNode2->data)->position,
                                      nodeDiameter / 2.0)) {
             if (isMouseOverNode && isNodeSelected && !isNodeLocked) {
-              // Lock node so when moving, selection is kept.
-              selectedNode = place->data;
+              /* Lock node so when moving, selection is kept. */
+              selectedNode = currentNode->data;
               isNodeLocked = true;
               break;
             }
@@ -212,8 +257,8 @@ int main(void)
       ClearBackground(RAYWHITE);
         
       // Draw Nodes
-      struct list_item *place3 = NULL;
-      for (place3 = node_list; place3 != NULL; place3 = place3->next) {
+      struct list_item *currentNode3 = NULL;
+      for (currentNode3 = node_list; currentNode3 != NULL; currentNode3 = currentNode3->next) {
         if (isNodeSelected && !(isLineStarted || isLineEnded))
           if (selectedNode != NULL) {
             if (mousePosition.x > screenWidth) {
@@ -233,14 +278,15 @@ int main(void)
             
           } 
 
-        DrawCircleV(((struct node *)place3->data)->position,
-                    ((struct node *)place3->data)->diameter,
-                    ((struct node *)place3->data)->color);
-        DrawText(TextFormat("%d", ((struct node *)place3->data)->id + 1),
-                 ((struct node *)place3->data)->position.x - 20,
-                 ((struct node *)place3->data)->position.y - 15, 8, BLACK);
+        DrawCircleV(((struct node *)currentNode3->data)->position,
+                    ((struct node *)currentNode3->data)->diameter,
+                    ((struct node *)currentNode3->data)->color);
+        DrawText(TextFormat("%d", ((struct node *)currentNode3->data)->id + 1),
+                 ((struct node *)currentNode3->data)->position.x - 20,
+                 ((struct node *)currentNode3->data)->position.y - 15, 8, BLACK);
       }
 
+      //Draw outline around selected node
       if (isNodeSelected)
           DrawCircleLines(selectedNode->position.x,
                           selectedNode->position.y,
