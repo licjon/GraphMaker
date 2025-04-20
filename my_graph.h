@@ -5,12 +5,16 @@
 #include <assert.h>
 #include "raylib.h"
 
+
 struct node {
   int id;             
+  int graph_id;   /* 0 means not a part of a graph*/
   int diameter;       
   Color color;        
   Vector2 position;   
+  Vector2 originalPosition;
   bool selected;
+  bool locked;
 };
 
 /* static_assert(sizeof(int) * 2 + sizeof(Color) + sizeof(Vector2) + sizeof(bool), */
@@ -27,6 +31,7 @@ struct list_item {
 };
 
 struct graph {
+  int id;
   struct list_item *nodes;
   struct list_item *lines;
 };
@@ -53,7 +58,7 @@ struct graph cyclic_graph_create(int num_nodes, int *nodeCount, Color nodeColors
 
 Vector2 *n_vertices_from_centroid(Vector2 centroid, int num_nodes);
 
-void update_lists(struct graph *graph, struct list_item **node_list, struct list_item **line_list); 
+bool update_lists(struct graph *graph, struct list_item **node_list, struct list_item **line_list);
 
 struct graph complete_graph_create(int num_nodes, int *nodeCount, Color nodeColors[], int nodeDiameter, Vector2 mousePosition);
 
@@ -61,6 +66,9 @@ int line_exists(struct list_item *lines, struct node *startNode, struct node *en
 
 int nodes_equal(struct node *node1, struct node *node2);
 
-//debugging
+int add_nodes_to_graph(struct node *nodes);
+/* Takes nodes to add to graph and returns the id number of the graph */
+
+/* debugging */
 void print_lines_list(struct list_item *lines);
 #endif

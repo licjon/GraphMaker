@@ -6,6 +6,7 @@
 #include "my_graph.h"
 
 #define NUM_OF_COLORS 20
+#define FAIL_EXIT(msg) do { fprintf(stderr, "ERROR: %s\n", msg); exit(EXIT_FAILURE); } while(0)
 
 //------------------------------------------------------------------------------------
 int GetDisplayWidth()
@@ -343,11 +344,18 @@ int main(void)
                                              nodeColors,
                                              nodeDiameter,
                                              mousePosition);
-          update_lists(&cyclic_graph, &node_list, &line_list);
+          if (cyclic_graph.nodes == NULL) {
+            fprintf(stderr, "Warning: Failed to create cyclic graph\n");
+          } else {
+            bool update_success = update_lists(&cyclic_graph, &node_list, &line_list);
+            if (!update_success) {
+              fprintf(stderr, "Warning: Failed to update lists with cyclic graph\n");
+            }
+          }
           isCPressed = false;
         }
 
-        /* Make Complet Graph */
+        /* Make Complete Graph */
       } else if (IsKeyPressed(KEY_K)) {
         isKPressed = true;
         kPressedFrame = GetFrameTime();
@@ -362,7 +370,14 @@ int main(void)
                                                  nodeColors,
                                                  nodeDiameter,
                                                  mousePosition);
-          update_lists(&complete_graph, &node_list, &line_list);
+          if (complete_graph.nodes == NULL) {
+            fprintf(stderr, "Warning: Failed to create complete graph\n");
+          } else {
+            bool update_success = update_lists(&complete_graph, &node_list, &line_list);
+            if (!update_success) {
+              fprintf(stderr, "Warning: Failed to update lists with complete graph\n");
+            }
+          }
           isKPressed = false;
         }
       } else if (key_pressed != KEY_C || key_pressed != KEY_K) {
@@ -464,7 +479,16 @@ int main(void)
         struct node *new_node = node_create(nodeCount, colorIndex,
                                             nodeColors, nodeDiameter,
                                             mousePosition);
-        node_list = add_to_list(node_list, new_node);
+        if (new_node == NULL) {
+          FAIL_EXIT("Failed to create new node");
+        }
+        
+        struct list_item *new_list = add_to_list(node_list, new_node);
+        if (new_list == NULL) {
+          free(new_node); // Clean up allocated node if list addition fails
+          FAIL_EXIT("Failed to add node to list");
+        }
+        node_list = new_list;
         colorIndex++;
         nodeCount++;
         isNodeDrawn = false;
@@ -473,14 +497,32 @@ int main(void)
       // LINES---------------------
       struct node start_node;
       if (createLine) {
-        struct line *new_line = start_line(selectedNode);
-        line_list = add_to_list(line_list, new_line);
-        createLine = false;
+        if (selectedNode == NULL) {
+          fprintf(stderr, "Warning: Trying to create line with NULL node\n");
+          createLine = false;
+        } else {
+          struct line *new_line = start_line(selectedNode);
+          if (new_line == NULL) {
+            FAIL_EXIT("Failed to create new line");
+          }
+          
+          struct list_item *new_list = add_to_list(line_list, new_line);
+          if (new_list == NULL) {
+            free(new_line); // Clean up allocated line if list addition fails
+            FAIL_EXIT("Failed to add line to list");
+          }
+          line_list = new_list;
+          createLine = false;
+        }
       }
 
       struct node end_node;
       if (isLineEnded) {
-        end_line(line_list, selectedNode);
+        if (selectedNode == NULL || line_list == NULL) {
+          fprintf(stderr, "Warning: Cannot end line with NULL node or empty line list\n");
+        } else {
+          end_line(line_list, selectedNode);
+        }
         isLineEnded = false;
         isNodeLocked = false;
       }
