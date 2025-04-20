@@ -46,6 +46,29 @@ void ToggleFullScreenWindow(int windowWidth, int windowHeight)
   }
 }
 
+void cleanup_resources(struct list_item **node_list, struct list_item **line_list) {
+    // Free all nodes
+    struct list_item *current = *node_list;
+    struct list_item *next;
+    
+    while (current != NULL) {
+        next = current->next;
+        free(current->data);  // Free the node data
+        free(current);        // Free the list item
+        current = next;
+    }
+    *node_list = NULL;
+    
+    // Free all lines
+    current = *line_list;
+    while (current != NULL) {
+        next = current->next;
+        free(current->data);  // Free the line data
+        free(current);        // Free the list item
+        current = next;
+    }
+    *line_list = NULL;
+}
 
 int main(void)
 {
@@ -630,6 +653,7 @@ int main(void)
 
   // De-Initialization
   //--------------------------------------------------------------------------------------
+  cleanup_resources(&node_list, &line_list);
   CloseWindow(); // Close window and OpenGL context
   //--------------------------------------------------------------------------------------
 
