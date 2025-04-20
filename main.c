@@ -288,7 +288,7 @@ int main(void)
       }
       
       // Draw node with left click - but not during cooldown period
-      else if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && !isLineStarted && !preventSelectionCooldown) {
+      else if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && !isLineStarted) {
         // Only set isNodeDrawn to true if we're not over an existing node
         bool isOverExistingNode = false;
         struct list_item *checkNode = NULL;
