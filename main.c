@@ -159,6 +159,7 @@ int main(void)
   
   // Used for multi-select dragging
   static bool firstDragFrame = true;
+  static Vector2 initialMousePosForDrag = {0}; // Shared mouse position for multi-select drag
   
   // Used to prevent re-selection after mouse release
   static bool preventSelectionCooldown = false;
@@ -322,6 +323,7 @@ int main(void)
         
         // Store starting mouse position
         startAreaPosition = mousePosition;
+        initialMousePosForDrag = mousePosition;
         firstDragFrame = true;
         
         // Clear the selection rectangle so movement isn't constrained
@@ -605,6 +607,61 @@ int main(void)
       BeginDrawing();
         
       ClearBackground(backgroundColor);
+      
+      // For multi-select, calculate movement constraints to maintain shape
+      if (isMultiSelect && isNodeSelected) {
+        // If it's the first frame of dragging, initialize was already done when mouse was pressed
+        if (firstDragFrame) {
+          firstDragFrame = false;
+          printf("First frame of multi-select drag, using saved positions\n");
+        }
+        
+        float deltaX = mousePosition.x - initialMousePosForDrag.x;
+        float deltaY = mousePosition.y - initialMousePosForDrag.y;
+        
+        // Find leftmost, rightmost, topmost, and bottommost nodes in selection
+        float leftmostX = screenWidth;
+        float rightmostX = 0;
+        float topmostY = screenHeight;
+        float bottommostY = 0;
+        
+        // First, calculate the bounds of the selected nodes group
+        struct list_item *boundNode = NULL;
+        for (boundNode = node_list; boundNode != NULL; boundNode = boundNode->next) {
+          struct node *nodeData = (struct node *)boundNode->data;
+          if (nodeData->selected) {
+            // Calculate where this node would be after applying the movement delta
+            float potentialX = nodeData->originalPosition.x + deltaX;
+            float potentialY = nodeData->originalPosition.y + deltaY;
+            
+            // Update the extremes
+            if (potentialX < leftmostX) leftmostX = potentialX;
+            if (potentialX > rightmostX) rightmostX = potentialX;
+            if (potentialY < topmostY) topmostY = potentialY;
+            if (potentialY > bottommostY) bottommostY = potentialY;
+          }
+        }
+        
+        // Calculate adjustments needed to keep all nodes within screen
+        float adjustX = 0;
+        float adjustY = 0;
+        
+        // Check if any node would go out of bounds and calculate adjustment
+        if (leftmostX < 0) adjustX = -leftmostX;
+        if (rightmostX > screenWidth) adjustX = screenWidth - rightmostX;
+        if (topmostY < 0) adjustY = -topmostY;
+        if (bottommostY > screenHeight) adjustY = screenHeight - bottommostY;
+        
+        // Adjust the mouse position to apply the corrected movement
+        // This effectively maintains the shape by moving all nodes together
+        mousePosition.x += adjustX;
+        mousePosition.y += adjustY;
+        
+        // Debug output
+        if (adjustX != 0 || adjustY != 0) {
+          printf("Group boundary hit: adjusting by (%f, %f)\n", adjustX, adjustY);
+        }
+      }
         
       // Draw Nodes
       struct list_item *currentNode3 = NULL;
@@ -643,37 +700,16 @@ int main(void)
 
           /* Multi-select move - only executed for nodes that are selected */
           if (isMultiSelect && currentNode3Data->selected && isNodeSelected) {
-            // On first frame of dragging, store the original positions
-            static Vector2 initialMousePos;
-            
-            if (firstDragFrame) {
-              initialMousePos = mousePosition;
-              firstDragFrame = false;
-              printf("First frame of multi-select drag, saving positions\n");
-            }
-            
-            // Calculate the mouse movement delta from initial position
-            float deltaX = mousePosition.x - initialMousePos.x;
-            float deltaY = mousePosition.y - initialMousePos.y;
+            // Calculate the deltas - these will already be adjusted to maintain the shape
+            float deltaX = mousePosition.x - initialMousePosForDrag.x;
+            float deltaY = mousePosition.y - initialMousePosForDrag.y;
             
             // Apply the delta to the original position of each node
             float newX = currentNode3Data->originalPosition.x + deltaX;
             float newY = currentNode3Data->originalPosition.y + deltaY;
             
-            // Keep nodes within screen bounds
-            if (newX > screenWidth) {
-              newX = screenWidth;
-            } else if (newX < 0) {
-              newX = 0;
-            }
-            
-            if (newY > screenHeight) {
-              newY = screenHeight;
-            } else if (newY < 0) {
-              newY = 0;
-            }
-            
-            // Update the node position
+            // The boundary checks are done separately - in a first pass before this loop
+            // We'll just use the adjusted deltas here
             currentNode3Data->position.x = newX;
             currentNode3Data->position.y = newY;
             
