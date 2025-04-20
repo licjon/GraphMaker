@@ -3,6 +3,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <signal.h>
 #include "my_graph.h"
 
 #define NUM_OF_COLORS 20
@@ -71,6 +72,26 @@ void cleanup_resources(struct list_item **node_list, struct list_item **line_lis
     *line_list = NULL;
 }
 
+// New error handling function
+void handle_error(const char* msg, struct list_item **node_list, struct list_item **line_list) {
+    fprintf(stderr, "ERROR: %s\n", msg);
+    cleanup_resources(node_list, line_list);
+    CloseWindow();
+    exit(EXIT_FAILURE);
+}
+
+// Global pointers for signal handler
+struct list_item *g_node_list = NULL;
+struct list_item *g_line_list = NULL;
+
+// Signal handler for cleanup on unexpected termination
+void signal_handler(int signal) {
+    fprintf(stderr, "Caught signal %d, cleaning up resources...\n", signal);
+    cleanup_resources(&g_node_list, &g_line_list);
+    CloseWindow();
+    exit(EXIT_FAILURE);
+}
+
 int main(void)
 {
   // Initialization
@@ -86,6 +107,15 @@ int main(void)
 
   struct list_item *line_list = NULL;
   struct list_item *node_list = NULL;
+
+  // Set up global pointers for signal handler
+  g_node_list = node_list;
+  g_line_list = line_list;
+
+  // Set up signal handlers
+  signal(SIGINT, signal_handler);
+  signal(SIGTERM, signal_handler);
+  signal(SIGSEGV, signal_handler);
 
   struct node *selectedNode = NULL;
 
@@ -350,6 +380,7 @@ int main(void)
             bool update_success = update_lists(&cyclic_graph, &node_list, &line_list);
             if (!update_success) {
               fprintf(stderr, "Warning: Failed to update lists with cyclic graph\n");
+              handle_error("Failed to update lists with cyclic graph", &node_list, &line_list);
             }
           }
           isCPressed = false;
@@ -376,6 +407,7 @@ int main(void)
             bool update_success = update_lists(&complete_graph, &node_list, &line_list);
             if (!update_success) {
               fprintf(stderr, "Warning: Failed to update lists with complete graph\n");
+              handle_error("Failed to update lists with complete graph", &node_list, &line_list);
             }
           }
           isKPressed = false;
@@ -480,15 +512,17 @@ int main(void)
                                             nodeColors, nodeDiameter,
                                             mousePosition);
         if (new_node == NULL) {
-          FAIL_EXIT("Failed to create new node");
+          handle_error("Failed to create new node", &node_list, &line_list);
         }
         
         struct list_item *new_list = add_to_list(node_list, new_node);
         if (new_list == NULL) {
           free(new_node); // Clean up allocated node if list addition fails
-          FAIL_EXIT("Failed to add node to list");
+          handle_error("Failed to add node to list", &node_list, &line_list);
         }
         node_list = new_list;
+        // Update global pointer for signal handler
+        g_node_list = node_list;
         colorIndex++;
         nodeCount++;
         isNodeDrawn = false;
@@ -503,15 +537,17 @@ int main(void)
         } else {
           struct line *new_line = start_line(selectedNode);
           if (new_line == NULL) {
-            FAIL_EXIT("Failed to create new line");
+            handle_error("Failed to create new line", &node_list, &line_list);
           }
           
           struct list_item *new_list = add_to_list(line_list, new_line);
           if (new_list == NULL) {
             free(new_line); // Clean up allocated line if list addition fails
-            FAIL_EXIT("Failed to add line to list");
+            handle_error("Failed to add line to list", &node_list, &line_list);
           }
           line_list = new_list;
+          // Update global pointer for signal handler
+          g_line_list = line_list;
           createLine = false;
         }
       }
