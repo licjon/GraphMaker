@@ -193,6 +193,15 @@ int main(void)
         if (!isSelecting) {
           startAreaPosition = mousePosition;
           isSelecting = true;
+          
+          // Clear any existing selection when starting a new selection area
+          if (isMultiSelect) {
+            struct list_item *currentNode = NULL;
+            for (currentNode = node_list; currentNode != NULL; currentNode = currentNode->next) {
+              struct node *currentNodeData = (struct node *)currentNode->data;
+              currentNodeData->selected = false;
+            }
+          }
         }
 
         endAreaPosition = mousePosition;
@@ -219,6 +228,8 @@ int main(void)
         
         // Select all nodes in the area
         struct list_item *currentNode = NULL;
+        int nodesSelected = 0; // Track how many nodes are selected
+        
         for (currentNode = node_list; currentNode != NULL; currentNode = currentNode->next) {
           struct node *currentNodeData = (struct node *)currentNode->data;
           if ((currentNodeData->position.x > selectionRect.x) && 
@@ -226,14 +237,26 @@ int main(void)
               (currentNodeData->position.y > selectionRect.y) && 
               (currentNodeData->position.y < (selectionRect.y + selectionRect.height))) {
             currentNodeData->selected = true;
-          } else {
+            nodesSelected++;
+            
+            // Save original position of each selected node
+            currentNodeData->originalPosition = currentNodeData->position;
+          } else if (isMultiSelect) {
+            // Only deselect nodes if we're not extending a selection with a modifier key
             currentNodeData->selected = false;
           }
         }
+        
+        // If no nodes were selected, exit multi-select mode
+        if (nodesSelected == 0) {
+          isMultiSelect = false;
+        }
+        
+        printf("Multi-select activated with %d nodes selected\n", nodesSelected);
       }
            
       // Exit multi-select mode when clicking in empty space
-      else if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && !isLineStarted && isMultiSelect) {
+      else if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && !isLineStarted && isMultiSelect && !preventSelectionCooldown) {
         // Check if clicking on any node
         bool clickedOnNode = false;
         struct list_item *currentNode = NULL;
@@ -247,20 +270,14 @@ int main(void)
             // Make sure this node is also selected
             currentNodeData->selected = true;
             
-            // Debug info - print selected state of nodes
-            printf("Clicked on node %d, selected=%d\n", currentNodeData->id, currentNodeData->selected);
-            struct list_item *debugNode = NULL;
-            for (debugNode = node_list; debugNode != NULL; debugNode = debugNode->next) {
-              struct node *nodeData = (struct node *)debugNode->data;
-              printf("Node %d: selected=%d\n", nodeData->id, nodeData->selected);
-            }
-            
+            printf("Clicked on node %d in multi-select mode\n", currentNodeData->id);
             break;
           }
         }
         
         // If clicked outside any node, exit multi-select mode
         if (!clickedOnNode) {
+          printf("Clicked in empty space, exiting multi-select mode\n");
           isMultiSelect = false;
           // Deselect all nodes
           for (currentNode = node_list; currentNode != NULL; currentNode = currentNode->next) {
@@ -292,6 +309,8 @@ int main(void)
 
       // Store original positions when starting a drag operation
       if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && isMultiSelect) {
+        printf("Starting multi-select drag operation\n");
+        
         // Store original positions of all selected nodes
         struct list_item *currentNode = NULL;
         for (currentNode = node_list; currentNode != NULL; currentNode = currentNode->next) {
@@ -300,8 +319,10 @@ int main(void)
             currentNodeData->originalPosition = currentNodeData->position;
           }
         }
+        
         // Store starting mouse position
         startAreaPosition = mousePosition;
+        firstDragFrame = true;
         
         // Clear the selection rectangle so movement isn't constrained
         selectionRect.x = 0;
@@ -328,11 +349,10 @@ int main(void)
         preventSelectionCooldown = true;
         cooldownFrames = 0;
         
-        // Exit multi-select mode when mouse is released
+        // Exit multi-select mode immediately when releasing mouse
         if (isMultiSelect) {
+          printf("Mouse released, exiting multi-select mode\n");
           isMultiSelect = false;
-          
-          // CRITICAL: Reset the selectedNode pointer to NULL to prevent node movement
           selectedNode = NULL;
           
           // Deselect all nodes
@@ -342,8 +362,14 @@ int main(void)
             currentNodeData->selected = false;
             currentNodeData->locked = false;
           }
-          
-          printf("Multi-select mode ended, selectedNode=%p\n", selectedNode);
+        } else {
+          // If not in multi-select mode, deselect all nodes as usual
+          struct list_item *currentNode = NULL;
+          for (currentNode = node_list; currentNode != NULL; currentNode = currentNode->next) {
+            struct node *currentNodeData = (struct node *)currentNode->data;
+            currentNodeData->selected = false;
+            currentNodeData->locked = false;
+          }
         }
       }
 
@@ -421,8 +447,7 @@ int main(void)
       if (IsKeyPressed(KEY_SPACE)) {
         ToggleFullScreenWindow(screenWidth, screenHeight);
       }
-
-
+      
       /* Check node collisions */
       bool isSpaceFree = true;
       bool isMouseOverNode = false;
@@ -623,14 +648,8 @@ int main(void)
             
             if (firstDragFrame) {
               initialMousePos = mousePosition;
-              struct list_item *tempNode = NULL;
-              for (tempNode = node_list; tempNode != NULL; tempNode = tempNode->next) {
-                struct node *nodeData = (struct node *)tempNode->data;
-                if (nodeData->selected) {
-                  nodeData->originalPosition = nodeData->position;
-                }
-              }
               firstDragFrame = false;
+              printf("First frame of multi-select drag, saving positions\n");
             }
             
             // Calculate the mouse movement delta from initial position
@@ -638,21 +657,25 @@ int main(void)
             float deltaY = mousePosition.y - initialMousePos.y;
             
             // Apply the delta to the original position of each node
-            currentNode3Data->position.x = currentNode3Data->originalPosition.x + deltaX;
-            currentNode3Data->position.y = currentNode3Data->originalPosition.y + deltaY;
+            float newX = currentNode3Data->originalPosition.x + deltaX;
+            float newY = currentNode3Data->originalPosition.y + deltaY;
             
             // Keep nodes within screen bounds
-            if (currentNode3Data->position.x > screenWidth) {
-              currentNode3Data->position.x = screenWidth;
-            } else if (currentNode3Data->position.x < 0) {
-              currentNode3Data->position.x = 0;
+            if (newX > screenWidth) {
+              newX = screenWidth;
+            } else if (newX < 0) {
+              newX = 0;
             }
             
-            if (currentNode3Data->position.y > screenHeight) {
-              currentNode3Data->position.y = screenHeight;
-            } else if (currentNode3Data->position.y < 0) {
-              currentNode3Data->position.y = 0;
+            if (newY > screenHeight) {
+              newY = screenHeight;
+            } else if (newY < 0) {
+              newY = 0;
             }
+            
+            // Update the node position
+            currentNode3Data->position.x = newX;
+            currentNode3Data->position.y = newY;
             
             // Update lines connected to this node
             struct list_item *line_head = NULL;
